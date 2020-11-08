@@ -1,6 +1,10 @@
 module Main where
 
 import Lib
+import System.Environment
 
 main :: IO ()
-main = putStrLn "Echo bot is coming"
+main = do
+    args <- getArgs
+    if null args then putStrLn "Usage:"
+                 else print (head args)    

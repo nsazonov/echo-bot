@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 2ae18ed771fa517fca828bbdaa65c5b90434ac1d9eb1a48d373195fe41dc1726
+-- hash: 78dd4ad98986b2ab564cc77f262d817e281649a4abfb5967f18f69d5fe6aa643
 
 name:           echo-bot
 version:        0.1.0.0
@@ -19,7 +19,6 @@ license-file:   LICENSE
 build-type:     Simple
 extra-source-files:
     README.md
-    ChangeLog.md
 
 source-repository head
   type: git
@@ -34,6 +33,8 @@ library
       src
   build-depends:
       base >=4.7 && <5
+    , http-client
+    , http-client-tls
   default-language: Haskell2010
 
 executable echo-bot-exe
@@ -46,6 +47,8 @@ executable echo-bot-exe
   build-depends:
       base >=4.7 && <5
     , echo-bot
+    , http-client
+    , http-client-tls
   default-language: Haskell2010
 
 test-suite echo-bot-test
@@ -59,4 +62,6 @@ test-suite echo-bot-test
   build-depends:
       base >=4.7 && <5
     , echo-bot
+    , http-client
+    , http-client-tls
   default-language: Haskell2010
