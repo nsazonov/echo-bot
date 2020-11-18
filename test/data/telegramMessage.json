@@ -1,0 +1,33 @@
+{
+    "ok": true,
+    "result": [
+        {
+            "update_id": 937106768,
+            "message": {
+                "message_id": 4,
+                "from": {
+                    "id": 55751070,
+                    "is_bot": false,
+                    "first_name": "Nikolay",
+                    "last_name": "Sazonov",
+                    "language_code": "en"
+                },
+                "chat": {
+                    "id": 55751070,
+                    "first_name": "Nikolay",
+                    "last_name": "Sazonov",
+                    "type": "private"
+                },
+                "date": 1604806029,
+                "text": "/help",
+                "entities": [
+                    {
+                        "offset": 0,
+                        "length": 5,
+                        "type": "bot_command"
+                    }
+                ]
+            }
+        }
+    ]
+}

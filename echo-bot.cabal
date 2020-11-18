@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 78dd4ad98986b2ab564cc77f262d817e281649a4abfb5967f18f69d5fe6aa643
+-- hash: 64ca85c7c4bc958259334aef4f5ddde15cad377f9518fa98473f485348bc9ae6
 
 name:           echo-bot
 version:        0.1.0.0
@@ -55,6 +55,7 @@ test-suite echo-bot-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
+      LibSpec
       Paths_echo_bot
   hs-source-dirs:
       test
@@ -64,4 +65,5 @@ test-suite echo-bot-test
     , echo-bot
     , http-client
     , http-client-tls
+    , hspec
   default-language: Haskell2010
