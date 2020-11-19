@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 64ca85c7c4bc958259334aef4f5ddde15cad377f9518fa98473f485348bc9ae6
+-- hash: ebbc84d967ae0e04f8d0913e5ed1e1adb20548cd433a244fe01be0f93701b4c4
 
 name:           echo-bot
 version:        0.1.0.0
@@ -26,15 +26,19 @@ source-repository head
 
 library
   exposed-modules:
-      Lib
+      API.Telegram
   other-modules:
       Paths_echo_bot
   hs-source-dirs:
       src
+  default-extensions: OverloadedStrings, DeriveGeneric
   build-depends:
-      base >=4.7 && <5
+      aeson
+    , base >=4.7 && <5
+    , bytestring
     , http-client
     , http-client-tls
+    , text
   default-language: Haskell2010
 
 executable echo-bot-exe
@@ -43,12 +47,16 @@ executable echo-bot-exe
       Paths_echo_bot
   hs-source-dirs:
       app
+  default-extensions: OverloadedStrings, DeriveGeneric
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.7 && <5
+      aeson
+    , base >=4.7 && <5
+    , bytestring
     , echo-bot
     , http-client
     , http-client-tls
+    , text
   default-language: Haskell2010
 
 test-suite echo-bot-test
@@ -59,11 +67,15 @@ test-suite echo-bot-test
       Paths_echo_bot
   hs-source-dirs:
       test
+  default-extensions: OverloadedStrings, DeriveGeneric
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.7 && <5
+      aeson
+    , base >=4.7 && <5
+    , bytestring
     , echo-bot
+    , hspec
     , http-client
     , http-client-tls
-    , hspec
+    , text
   default-language: Haskell2010

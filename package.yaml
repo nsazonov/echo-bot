@@ -20,8 +20,13 @@ description:         Please see the README on GitHub at <https://github.com/nsaz
 
 dependencies:
 - base >= 4.7 && < 5
+- aeson
+- bytestring
 - http-client
 - http-client-tls
+- text
+
+default-extensions: OverloadedStrings, DeriveGeneric
 
 library:
   source-dirs: src
@@ -47,3 +52,4 @@ tests:
     - -with-rtsopts=-N
     dependencies:
     - echo-bot
+    - hspec
