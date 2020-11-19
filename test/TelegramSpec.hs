@@ -1,4 +1,4 @@
-module LibSpec where
+module TelegramSpec where
 
 import           Test.Hspec
 import           Data.Aeson

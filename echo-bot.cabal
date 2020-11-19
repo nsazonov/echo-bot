@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: ebbc84d967ae0e04f8d0913e5ed1e1adb20548cd433a244fe01be0f93701b4c4
+-- hash: 1bcb84aa58c85d33208a8a4110f849028b7ca3ad7507ff66e6fa50b59ccec325
 
 name:           echo-bot
 version:        0.1.0.0
@@ -26,6 +26,7 @@ source-repository head
 
 library
   exposed-modules:
+      API.Network
       API.Telegram
   other-modules:
       Paths_echo_bot
@@ -36,8 +37,7 @@ library
       aeson
     , base >=4.7 && <5
     , bytestring
-    , http-client
-    , http-client-tls
+    , http-conduit
     , text
   default-language: Haskell2010
 
@@ -54,8 +54,7 @@ executable echo-bot-exe
     , base >=4.7 && <5
     , bytestring
     , echo-bot
-    , http-client
-    , http-client-tls
+    , http-conduit
     , text
   default-language: Haskell2010
 
@@ -63,7 +62,7 @@ test-suite echo-bot-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
-      LibSpec
+      TelegramSpec
       Paths_echo_bot
   hs-source-dirs:
       test
@@ -75,7 +74,6 @@ test-suite echo-bot-test
     , bytestring
     , echo-bot
     , hspec
-    , http-client
-    , http-client-tls
+    , http-conduit
     , text
   default-language: Haskell2010
