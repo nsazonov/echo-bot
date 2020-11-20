@@ -1,5 +1,9 @@
 module API.Network
-  ( fetchUpdates
+  ( getUpdatesRequest
+  , sendMessageRequest
+  , runGetUpdate
+  , runSendMessage
+  , Timeout
   )
 where
 
@@ -8,34 +12,42 @@ import qualified Data.ByteString               as B
 import qualified Data.ByteString.Char8         as BC
 import qualified Data.ByteString.Lazy          as L
 import qualified Data.ByteString.Lazy.Char8    as LC
+import           Data.Maybe
 import           Network.HTTP.Simple
 
 host :: BC.ByteString
 host = "api.telegram.org"
 
-timeout :: BC.ByteString
-timeout = "5"
+defaultTimeout :: Integer
+defaultTimeout = 10
 
-type Timeout = BC.ByteString
+type Timeout = Integer
 type Token = BC.ByteString
 type Host = BC.ByteString
 type Method = BC.ByteString
+type RequestMethod = BC.ByteString
 
-buildRequest :: Token -> Host -> Method -> Timeout -> Request
-buildRequest token host method timeout =
-  setRequestMethod "GET"
-    $ setRequestQueryString [("timeout", Just timeout)]
+buildRequest :: Token -> RequestMethod -> Host -> Method -> Request
+buildRequest token requestMethod host method =
+  setRequestMethod requestMethod
     $ setRequestPath (BC.append (BC.append (BC.append "/" token) "/") method)
     $ setRequestHost host
     $ setRequestSecure True
-    $ setRequestPort 443
-    $ defaultRequest
+    $ setRequestPort 443 defaultRequest
 
-getUpdatesRequest :: Token -> IO (Response GetUpdatesResponse)
-getUpdatesRequest token =
-  httpJSON $ buildRequest token host "getUpdates" timeout
+getUpdatesRequest :: Token -> Maybe Timeout -> IO (Response GetUpdatesResponse)
+getUpdatesRequest token timeout =
+  let request = buildRequest token "GET" host "getUpdates"
+  in  httpJSON $ setRequestQueryString
+        (maybe [] (\t -> [("timeout", Just (BC.pack $ show t))]) timeout)
+        request
 
-fetchUpdates :: Token -> IO ()
-fetchUpdates token = do
-  response <- getUpdatesRequest token
-  print response
+runGetUpdate :: Request -> IO (Response GetUpdatesResponse)
+runGetUpdate = httpJSON
+
+sendMessageRequest :: Token -> OutgoingMessage -> Request
+sendMessageRequest token message =
+  setRequestBodyJSON message $ buildRequest token "POST" host "sendMessage"
+
+runSendMessage :: Request -> IO (Response Message)
+runSendMessage = httpJSON
