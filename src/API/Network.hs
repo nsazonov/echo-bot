@@ -22,6 +22,7 @@ defaultTimeout :: Integer
 defaultTimeout = 10
 
 type Timeout = Integer
+type Offset = Integer
 type Token = BC.ByteString
 type Host = BC.ByteString
 type Method = BC.ByteString
@@ -35,15 +36,21 @@ buildRequest token requestMethod host method =
     $ setRequestSecure True
     $ setRequestPort 443 defaultRequest
 
-getUpdatesRequest :: Token -> Maybe Timeout -> IO (Response GetUpdatesResponse)
-getUpdatesRequest token timeout =
+getUpdatesRequest :: Token -> Maybe Offset -> Maybe Timeout -> Request
+getUpdatesRequest token offset timeout =
   let request = buildRequest token "GET" host "getUpdates"
-  in  httpJSON $ setRequestQueryString
+  in  setRequestQueryString
         (maybe [] (\t -> [("timeout", Just (BC.pack $ show t))]) timeout)
         request
 
-runGetUpdate :: Request -> IO (Response GetUpdatesResponse)
-runGetUpdate = httpJSON
+runGetUpdate :: Request -> IO (Maybe Update)
+runGetUpdate request = do
+  response <-
+    httpJSONEither request :: IO
+      (Response (Either JSONException GetUpdatesResponse))
+  case getResponseBody response of
+    (Left  _             ) -> return Nothing
+    (Right updateResponse) -> return $ safeHead $ result updateResponse
 
 sendMessageRequest :: Token -> OutgoingMessage -> Request
 sendMessageRequest token message =
@@ -51,3 +58,7 @@ sendMessageRequest token message =
 
 runSendMessage :: Request -> IO (Response Message)
 runSendMessage = httpJSON
+
+safeHead :: [a] -> Maybe a
+safeHead []      = Nothing
+safeHead (x : _) = Just x
