@@ -1,6 +1,5 @@
 module Main where
 
-import API.Telegram
 import System.Environment
 
 main :: IO ()

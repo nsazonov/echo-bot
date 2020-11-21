@@ -3,26 +3,19 @@ module API.Network
   , sendMessageRequest
   , runGetUpdate
   , runSendMessage
+  , answerCallback
   , Timeout
   )
 where
 
 import           API.Telegram
-import qualified Data.ByteString               as B
 import qualified Data.ByteString.Char8         as BC
-import qualified Data.ByteString.Lazy          as L
-import qualified Data.ByteString.Lazy.Char8    as LC
-import           Data.Maybe
 import           Network.HTTP.Simple
 
-host :: BC.ByteString
-host = "api.telegram.org"
-
-defaultTimeout :: Integer
-defaultTimeout = 10
+telegramHost :: BC.ByteString
+telegramHost = "api.telegram.org"
 
 type Timeout = Integer
-type Offset = Integer
 type Token = BC.ByteString
 type Host = BC.ByteString
 type Method = BC.ByteString
@@ -36,26 +29,29 @@ buildRequest token requestMethod host method =
     $ setRequestSecure True
     $ setRequestPort 443 defaultRequest
 
-getUpdatesRequest :: Token -> Maybe Offset -> Maybe Timeout -> Request
-getUpdatesRequest token offset timeout =
-  let request = buildRequest token "GET" host "getUpdates"
+getUpdatesRequest :: Token -> Maybe Timeout -> Request
+getUpdatesRequest token timeout =
+  let request = buildRequest token "GET" telegramHost "getUpdates"
   in  setRequestQueryString
         (maybe [] (\t -> [("timeout", Just (BC.pack $ show t))]) timeout)
         request
 
+sendMessageRequest :: Token -> OutgoingMessage -> Request
+sendMessageRequest token m =
+  setRequestBodyJSON m $ buildRequest token "POST" telegramHost "sendMessage"
+
+answerCallback :: Token -> CallbackAnswer -> Request
+answerCallback token c = setRequestBodyJSON c $ buildRequest token "POST" telegramHost "answerCallbackQuery"
+
 runGetUpdate :: Request -> IO (Maybe Update)
 runGetUpdate request = do
-  response <-
-    httpJSONEither request :: IO
-      (Response (Either JSONException GetUpdatesResponse))
-  case getResponseBody response of
-    (Left  _             ) -> return Nothing
-    (Right updateResponse) -> return $ safeHead $ result updateResponse
-
-sendMessageRequest :: Token -> OutgoingMessage -> Request
-sendMessageRequest token message =
-  setRequestBodyJSON message $ buildRequest token "POST" host "sendMessage"
-
+    response <-
+      httpJSONEither request :: IO
+        (Response (Either JSONException GetUpdatesResponse))
+    case getResponseBody response of
+      (Left  _             ) -> return Nothing
+      (Right updateResponse) -> return $ safeHead $ result updateResponse
+  
 runSendMessage :: Request -> IO (Response Message)
 runSendMessage = httpJSON
 
