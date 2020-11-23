@@ -24,7 +24,7 @@ type RequestMethod = BC.ByteString
 buildRequest :: Token -> RequestMethod -> Host -> Method -> Request
 buildRequest token requestMethod host method =
   setRequestMethod requestMethod
-    $ setRequestPath (BC.append (BC.append (BC.append "/" token) "/") method)
+    $ setRequestPath ("/" <> token <> "/" <> method)
     $ setRequestHost host
     $ setRequestSecure True
     $ setRequestPort 443 defaultRequest
