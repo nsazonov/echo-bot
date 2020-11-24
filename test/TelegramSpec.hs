@@ -1,10 +1,10 @@
 module TelegramSpec where
 
-import           Test.Hspec
+import qualified API.Telegram         as TG
 import           Data.Aeson
-import qualified Data.ByteString.Lazy          as B
+import qualified Data.ByteString.Lazy as B
 import           Data.Maybe
-import qualified API.Telegram                  as TG
+import           Test.Hspec
 
 main :: IO ()
 main = hspec spec

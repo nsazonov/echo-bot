@@ -9,8 +9,8 @@ module API.Telegram
   )
 where
 
-import qualified Data.Aeson                    as A
-import           Data.Text                     as T
+import qualified Data.Aeson as A
+import           Data.Text  as T
 
 data GetUpdatesResponse = GetUpdatesResponse {guOk :: Bool, guResult :: [Update]} deriving (Show)
 data Update = Update {uId :: Integer, uMessage :: Maybe Message} deriving (Show)

@@ -6,12 +6,12 @@ module API.Network
   , answerCallback
   , latest
   , Timeout
-  , Token
+  , Token(..)
   )
 where
 
-import qualified API.Telegram                  as TG
-import qualified Data.ByteString.Char8         as BC
+import qualified API.Telegram          as TG
+import qualified Data.ByteString.Char8 as BC
 import           Data.List
 import           Network.HTTP.Simple
 
@@ -19,15 +19,16 @@ telegramHost :: BC.ByteString
 telegramHost = "api.telegram.org"
 
 type Timeout = Integer
-type Token = BC.ByteString
 type Host = BC.ByteString
 type Method = BC.ByteString
 type RequestMethod = BC.ByteString
 
+newtype Token = Token { unToken :: BC.ByteString }
+
 buildRequest :: Token -> RequestMethod -> Host -> Method -> Request
 buildRequest token requestMethod host method =
   setRequestMethod requestMethod
-    $ setRequestPath ("/" <> token <> "/" <> method)
+    $ setRequestPath ("/" <> unToken token <> "/" <> method)
     $ setRequestHost host
     $ setRequestSecure True
     $ setRequestPort 443 defaultRequest
