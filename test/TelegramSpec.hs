@@ -5,10 +5,6 @@ import           Data.Aeson
 import qualified Data.ByteString.Lazy          as B
 import           Data.Maybe
 import qualified API.Telegram                  as TG
-                                         hiding ( OutgoingMessage(text)
-                                                , CallbackAnswer(text)
-                                                , InlineKeyboardButton(text)
-                                                )
 
 main :: IO ()
 main = hspec spec
@@ -27,13 +23,13 @@ spec = do
   around getUpdates $ do
     describe "parse getUpdates json" $ do
       it "should be successful" $ \resp -> do
-        TG.ok resp `shouldBe` True
+        TG.guOk resp `shouldBe` True
       it "should have a list of result objects" $ \resp -> do
-        let rs = TG.result resp
+        let rs = TG.guResult resp
         length rs `shouldBe` 1
       it "should have text in the message" $ \resp -> do
         let update =
-              fromJust . TG.text . fromJust . TG.message . head $ TG.result resp
+              fromJust . TG.mText . fromJust . TG.uMessage . head $ TG.guResult resp
         update `shouldBe` "/help"
 
 

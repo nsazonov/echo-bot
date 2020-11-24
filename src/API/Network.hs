@@ -50,7 +50,7 @@ runGetUpdate request = do
         (Response (Either JSONException GetUpdatesResponse))
     case getResponseBody response of
       (Left  _             ) -> return Nothing
-      (Right updateResponse) -> return $ safeHead $ result updateResponse
+      (Right updateResponse) -> return $ safeHead $ guResult updateResponse
   
 runSendMessage :: Request -> IO (Response Message)
 runSendMessage = httpJSON
