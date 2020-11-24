@@ -1,6 +1,5 @@
 module Main where
 import           System.Environment
-import qualified API.Telegram                  as TG
 import qualified API.Network                   as N
 
 main :: IO ()

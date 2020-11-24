@@ -25,7 +25,7 @@ dependencies:
 - http-conduit
 - text
 
-default-extensions: OverloadedStrings
+default-extensions: OverloadedStrings, RecordWildCards
 
 library:
   source-dirs: src

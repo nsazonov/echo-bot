@@ -25,57 +25,61 @@ instance A.ToJSON CallbackAnswer where
     A.object ["callback_query_id" A..= caQueryId p, "text" A..= caText p]
 
 instance A.ToJSON OutgoingMessage where
-  toJSON p =
-    A.object ["chat_id" A..= omChatId p, "text" A..= omText p, "reply_markup" A..= omReplyMarkup p]
+  toJSON p = A.object
+    [ "chat_id" A..= omChatId p
+    , "text" A..= omText p
+    , "reply_markup" A..= omReplyMarkup p
+    ]
 
 instance A.ToJSON InlineKeyboardMarkup where
   toJSON p = A.object ["inline_keyboard" A..= ikmKeyboard p]
 
 instance A.ToJSON InlineKeyboardButton where
-  toJSON p = A.object ["text" A..= ikbText p, "callback_data" A..= ikbCallBackData p]
+  toJSON p =
+    A.object ["text" A..= ikbText p, "callback_data" A..= ikbCallBackData p]
 
 instance A.FromJSON Message where
   parseJSON = A.withObject "FromJSON API.Telegram.Message" $ \o -> do
-    i <- o A..: "message_id"
-    t <- o A..: "text"
-    return Message { mId = i, mText = t }
+    mId   <- o A..: "message_id"
+    mText <- o A..: "text"
+    return Message { .. }
 
 instance A.FromJSON Update where
   parseJSON = A.withObject "FromJSON API.Telegram.Update" $ \o -> do
-    i <- o A..: "update_id"
-    m <- o A..:? "message"
-    return Update { uId = i, uMessage = m }
+    uId      <- o A..: "update_id"
+    uMessage <- o A..:? "message"
+    return Update { .. }
 
 instance A.FromJSON GetUpdatesResponse where
   parseJSON = A.withObject "FromJSON API.Telegram.GetUpdatesResponse" $ \o ->
     do
-      k <- o A..: "ok"
-      r <- o A..: "result"
-      return GetUpdatesResponse { guOk = k, guResult = r }
+      guOk     <- o A..: "ok"
+      guResult <- o A..: "result"
+      return GetUpdatesResponse { .. }
 
 instance A.FromJSON OutgoingMessage where
   parseJSON = A.withObject "FromJSON API.Telegram.OutgoingMessage" $ \o -> do
-    ci <- o A..: "chat_id"
-    t  <- o A..: "text"
-    r  <- o A..: "reply_markup"
-    return OutgoingMessage { omChatId = ci, omText = t, omReplyMarkup = r }
+    omChatId      <- o A..: "chat_id"
+    omText        <- o A..: "text"
+    omReplyMarkup <- o A..: "reply_markup"
+    return OutgoingMessage { .. }
 
 instance A.FromJSON InlineKeyboardMarkup where
   parseJSON =
     A.withObject "FromJSON API.Telegram.InlineKeyboardMarkup" $ \o -> do
-      m <- o A..: "inline_keyboard"
-      return InlineKeyboardMarkup { ikmKeyboard = m }
+      ikmKeyboard <- o A..: "inline_keyboard"
+      return InlineKeyboardMarkup { .. }
 
 instance A.FromJSON InlineKeyboardButton where
   parseJSON =
     A.withObject "FromJSON API.Telegram.InlineKeyboardButton" $ \o -> do
-      t <- o A..: "text"
-      c <- o A..: "callback_data"
-      return InlineKeyboardButton { ikbText = t, ikbCallBackData = c }
+      ikbText         <- o A..: "text"
+      ikbCallBackData <- o A..: "callback_data"
+      return InlineKeyboardButton { .. }
 
 instance A.FromJSON CallbackAnswer where
   parseJSON = A.withObject "FromJSON API.Telegram.CallbackAnswer" $ \o -> do
-    i <- o A..: "callback_query_id"
-    t <- o A..: "text"
-    return CallbackAnswer { caQueryId = i, caText = t }
+    caQueryId <- o A..: "callback_query_id"
+    caText    <- o A..: "text"
+    return CallbackAnswer { .. }
 

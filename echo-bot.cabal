@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: ae0aba6620212248f004985e0b090ec87e018a812fe43e443882c52dbbc4ca96
+-- hash: 70721e9475735561f958406ed4c11ed70df9aa3e9aa2c89de32e6f6510f490c3
 
 name:           echo-bot
 version:        0.1.0.0
@@ -32,7 +32,7 @@ library
       Paths_echo_bot
   hs-source-dirs:
       src
-  default-extensions: OverloadedStrings
+  default-extensions: OverloadedStrings, RecordWildCards
   build-depends:
       aeson
     , base >=4.7 && <5
@@ -47,7 +47,7 @@ executable echo-bot-exe
       Paths_echo_bot
   hs-source-dirs:
       app
-  default-extensions: OverloadedStrings
+  default-extensions: OverloadedStrings, RecordWildCards
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       aeson
@@ -66,7 +66,7 @@ test-suite echo-bot-test
       Paths_echo_bot
   hs-source-dirs:
       test
-  default-extensions: OverloadedStrings
+  default-extensions: OverloadedStrings, RecordWildCards
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       aeson
