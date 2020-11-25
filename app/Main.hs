@@ -10,7 +10,7 @@ main = do
 botLoop :: Token -> Maybe Integer -> IO ()
 botLoop token offset = do
   putStrLn "Waiting..."
-  response <- runGetUpdate $ getUpdatesRequest token offset (Just 5)
+  response <- runGetUpdate $ getUpdatesRequest token offset (Just $ Timeout 5)
   case response of
     Nothing -> do
       putStrLn "Nothing"

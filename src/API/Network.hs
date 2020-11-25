@@ -5,42 +5,46 @@ module API.Network
   , runSendMessage
   , answerCallback
   , latest
-  , Timeout
+  , Timeout(..)
   , Token(..)
   )
 where
 
-import qualified API.Telegram          as TG
-import qualified Data.ByteString.Char8 as BC
+import qualified API.Telegram                  as TG
+import qualified Data.ByteString.Char8         as BC
 import           Data.List
 import           Network.HTTP.Simple
 
-telegramHost :: BC.ByteString
-telegramHost = "api.telegram.org"
+telegramHost :: Host
+telegramHost = Host "api.telegram.org"
 
-type Timeout = Integer
-type Host = BC.ByteString
-type Method = BC.ByteString
-type RequestMethod = BC.ByteString
-
+data RequestMethod = GET | POST deriving (Show)
 newtype Token = Token { unToken :: BC.ByteString }
+newtype Host = Host {unHost :: BC.ByteString }
+newtype Timeout = Timeout {unTimeout :: Integer}
 
-buildRequest :: Token -> RequestMethod -> Host -> Method -> Request
+data APIMethod = GetUpdates | SendMessage | AnswerCallbackQuery
+instance Show APIMethod where
+  show GetUpdates          = "getUpdate"
+  show SendMessage         = "sendMessage"
+  show AnswerCallbackQuery = "answerCallbackQuery"
+
+buildRequest :: Token -> RequestMethod -> Host -> APIMethod -> Request
 buildRequest token requestMethod host method =
-  setRequestMethod requestMethod
-    $ setRequestPath ("/" <> unToken token <> "/" <> method)
-    $ setRequestHost host
+  setRequestMethod (BC.pack $ show requestMethod)
+    $ setRequestPath ("/" <> unToken token <> "/" <> BC.pack (show method))
+    $ setRequestHost (unHost host)
     $ setRequestSecure True
     $ setRequestPort 443 defaultRequest
 
 getUpdatesRequest :: Token -> Maybe Integer -> Maybe Timeout -> Request
 getUpdatesRequest token offset timeout =
-  let request = buildRequest token "GET" telegramHost "getUpdates"
+  let request = buildRequest token GET telegramHost GetUpdates
   in  setRequestQueryString
         (maybe
           []
           (\t ->
-            [ ("timeout", Just (BC.pack $ show t))
+            [ ("timeout", Just (BC.pack $ show (unTimeout t)))
             , ("offset" , fmap (BC.pack . show) offset)
             ]
           )
@@ -50,11 +54,11 @@ getUpdatesRequest token offset timeout =
 
 sendMessageRequest :: Token -> TG.OutgoingMessage -> Request
 sendMessageRequest token m =
-  setRequestBodyJSON m $ buildRequest token "POST" telegramHost "sendMessage"
+  setRequestBodyJSON m $ buildRequest token POST telegramHost SendMessage
 
 answerCallback :: Token -> TG.CallbackAnswer -> Request
 answerCallback token c = setRequestBodyJSON c
-  $ buildRequest token "POST" telegramHost "answerCallbackQuery"
+  $ buildRequest token POST telegramHost AnswerCallbackQuery
 
 runGetUpdate :: Request -> IO (Maybe [TG.Update])
 runGetUpdate request = do
