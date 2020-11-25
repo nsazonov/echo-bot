@@ -1,6 +1,7 @@
 module Main where
-import           API.Network
-import           System.Environment
+
+import API.Network
+import System.Environment
 
 main :: IO ()
 main = do
@@ -14,7 +15,7 @@ botLoop token offset = do
   case response of
     Nothing -> do
       putStrLn "Nothing"
-      botLoop token offset
+      botLoop token offset{--}
     (Just updates) -> do
       case latest updates of
         Nothing -> do
@@ -23,4 +24,3 @@ botLoop token offset = do
         Just newOffset -> do
           putStrLn $ "Offset: " ++ show newOffset
           botLoop token (Just (newOffset + 1))
-

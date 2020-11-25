@@ -1,10 +1,10 @@
 module TelegramSpec where
 
-import qualified API.Telegram         as TG
-import           Data.Aeson
+import qualified API.Telegram as TG
+import Data.Aeson
 import qualified Data.ByteString.Lazy as B
-import           Data.Maybe
-import           Test.Hspec
+import Data.Maybe
+import Test.Hspec
 
 main :: IO ()
 main = hspec spec
@@ -31,7 +31,3 @@ spec = do
         let update =
               fromJust . TG.mText . fromJust . TG.uMessage . head $ TG.guResult resp
         update `shouldBe` "/help"
-
-
-
-
