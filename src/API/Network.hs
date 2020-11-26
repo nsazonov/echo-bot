@@ -7,6 +7,7 @@ module API.Network
     latest,
     Timeout (..),
     Token (..),
+    Offset (..),
   )
 where
 
@@ -20,11 +21,13 @@ telegramHost = Host "api.telegram.org"
 
 data RequestMethod = GET | POST deriving (Show)
 
-newtype Token = Token {unToken :: BC.ByteString}
+newtype Token = Token {unToken :: BC.ByteString} deriving (Show)
 
 newtype Host = Host {unHost :: BC.ByteString}
 
 newtype Timeout = Timeout {unTimeout :: Integer}
+
+newtype Offset = Offset {unOffset :: Integer} deriving (Show)
 
 data APIMethod = GetUpdates | SendMessage | AnswerCallbackQuery
 
@@ -41,7 +44,7 @@ buildRequest token requestMethod host method =
         setRequestSecure True $
           setRequestPort 443 defaultRequest
 
-getUpdatesRequest :: Token -> Maybe Integer -> Maybe Timeout -> Request
+getUpdatesRequest :: Token -> Maybe Offset -> Maybe Timeout -> Request
 getUpdatesRequest token offset timeout =
   let request = buildRequest token GET telegramHost GetUpdates
    in setRequestQueryString
@@ -49,7 +52,7 @@ getUpdatesRequest token offset timeout =
             []
             ( \t ->
                 [ ("timeout", Just (BC.pack $ show (unTimeout t))),
-                  ("offset", fmap (BC.pack . show) offset)
+                  ("offset", fmap (BC.pack . show . unOffset) offset)
                 ]
             )
             timeout

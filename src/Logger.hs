@@ -1,6 +1,7 @@
 module Logger
   ( Level (..),
     Config (..),
+    Handle,
     withHandle,
     log,
     debug,
