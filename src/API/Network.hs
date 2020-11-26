@@ -32,9 +32,12 @@ newtype Offset = Offset {unOffset :: Integer} deriving (Show)
 data APIMethod = GetUpdates | SendMessage | AnswerCallbackQuery
 
 instance Show APIMethod where
-  show GetUpdates = "getUpdate"
+  show GetUpdates = "getUpdates"
   show SendMessage = "sendMessage"
   show AnswerCallbackQuery = "answerCallbackQuery"
+
+instance Show Timeout where
+  show t = show $ unTimeout t
 
 buildRequest :: Token -> RequestMethod -> Host -> APIMethod -> Request
 buildRequest token requestMethod host method =
@@ -68,15 +71,15 @@ answerCallback token c =
   setRequestBodyJSON c $
     buildRequest token POST telegramHost AnswerCallbackQuery
 
-runGetUpdate :: Request -> IO (Maybe [TG.Update])
+runGetUpdate :: Request -> IO (Either String [TG.Update])
 runGetUpdate request = do
   response <-
     httpJSONEither request ::
       IO
         (Response (Either JSONException TG.GetUpdatesResponse))
   case getResponseBody response of
-    (Left _) -> return Nothing
-    (Right updateResponse) -> return $ Just $ TG.guResult updateResponse
+    (Left exception) -> return $ Left $ show exception
+    (Right updateResponse) -> return (Right $ TG.guResult updateResponse)
 
 runSendMessage :: Request -> IO (Response TG.Message)
 runSendMessage = httpJSON

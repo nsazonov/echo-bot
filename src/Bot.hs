@@ -8,6 +8,7 @@ import qualified Data.ByteString.Char8 as BC
 import qualified Logger
 import System.Environment
 import System.Exit (exitFailure)
+import Data.Maybe (fromJust)
 
 main :: IO ()
 main = do
@@ -30,13 +31,14 @@ runLoop handle = botLoop (hLogger handle) (cToken . hConfig $ handle)
 
 botLoop :: Logger.Handle -> Token -> Maybe Offset -> IO ()
 botLoop logger token offset = do
-  Logger.info logger "Waiting..."
-  response <- runGetUpdate $ getUpdatesRequest token offset (Just $ Timeout 5)
+  let timeout = Just $ Timeout 5
+  Logger.info logger ("Waiting " ++ show (fromJust timeout) ++ " seconds")  
+  response <- runGetUpdate $ getUpdatesRequest token offset timeout
   case response of
-    Nothing -> do
-      Logger.info logger "Nothing"
+    Left e -> do
+      Logger.error logger e
       botLoop logger token offset
-    (Just updates) -> do
+    Right updates -> do
       case latest updates of
         Nothing -> do
           Logger.info logger "No updates!"
