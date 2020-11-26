@@ -4,9 +4,19 @@ module Bot
 where
 
 import API.Network
+import qualified Data.ByteString.Char8 as BC
+import System.Environment
+import System.Exit (exitFailure)
 
 main :: IO ()
-main = putStrLn "Running Bot..."
+main = do
+  args <- getArgs
+  progName <- getProgName
+  case args of
+    [token] -> botLoop (Token $ BC.pack token) (Just 10)
+    _ -> do
+      putStrLn $ "Usage: " ++ progName ++ " <conf>"
+      exitFailure
 
 botLoop :: Token -> Maybe Integer -> IO ()
 botLoop token offset = do
