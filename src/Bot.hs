@@ -4,11 +4,12 @@ module Bot
 where
 
 import API.Network
+import qualified API.Telegram as TG
 import qualified Data.ByteString.Char8 as BC
+import Data.Maybe (fromJust)
 import qualified Logger
 import System.Environment
 import System.Exit (exitFailure)
-import Data.Maybe (fromJust)
 
 main :: IO ()
 main = do
@@ -32,7 +33,7 @@ runLoop handle = botLoop (hLogger handle) (cToken . hConfig $ handle)
 botLoop :: Logger.Handle -> Token -> Maybe Offset -> IO ()
 botLoop logger token offset = do
   let timeout = Just $ Timeout 5
-  Logger.info logger ("Waiting " ++ show (fromJust timeout) ++ " seconds")  
+  Logger.debug logger ("Waiting " ++ show (fromJust timeout) ++ " seconds")
   response <- runGetUpdate $ getUpdatesRequest token offset timeout
   case response of
     Left e -> do
@@ -41,8 +42,8 @@ botLoop logger token offset = do
     Right updates -> do
       case latest updates of
         Nothing -> do
-          Logger.info logger "No updates!"
+          Logger.debug logger "No updates!"
           botLoop logger token offset
-        Just newOffset -> do
-          Logger.info logger $ "Offset: " ++ show newOffset
-          botLoop logger token (Just $ Offset $ newOffset + 1)
+        Just update -> do
+          Logger.info logger $ "Offset: " ++ show (TG.uId update)
+          botLoop logger token (Just $ Offset $ succ $ TG.uId update)

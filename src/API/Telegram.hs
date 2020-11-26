@@ -26,6 +26,12 @@ newtype InlineKeyboardMarkup = InlineKeyboardMarkup {ikmKeyboard :: [[InlineKeyb
 
 data InlineKeyboardButton = InlineKeyboardButton {ikbText :: T.Text, ikbCallBackData :: T.Text} deriving (Show)
 
+instance Eq Update where
+  (==) a b = uId a == uId b
+
+instance Ord Update where
+  compare a b = a `compare` b
+
 instance A.ToJSON CallbackAnswer where
   toJSON p =
     A.object ["callback_query_id" A..= caQueryId p, "text" A..= caText p]

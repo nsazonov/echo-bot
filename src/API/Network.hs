@@ -88,7 +88,5 @@ safeHead :: [a] -> Maybe a
 safeHead [] = Nothing
 safeHead (x : _) = Just x
 
--- TODO: the order should be desc
--- TODO: return update, not the id
-latest :: [TG.Update] -> Maybe Integer
-latest = safeHead . sort . map TG.uId
+latest :: [TG.Update] -> Maybe TG.Update
+latest = safeHead . sort
