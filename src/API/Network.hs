@@ -1,3 +1,5 @@
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+
 module API.Network
   ( getUpdatesRequest,
     sendMessageRequest,
@@ -27,7 +29,7 @@ newtype Host = Host {unHost :: BC.ByteString}
 
 newtype Timeout = Timeout {unTimeout :: Integer}
 
-newtype Offset = Offset {unOffset :: Integer} deriving (Show)
+newtype Offset = Offset {unOffset :: Integer} deriving (Show, Enum)
 
 data APIMethod = GetUpdates | SendMessage | AnswerCallbackQuery
 
