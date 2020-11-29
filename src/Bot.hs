@@ -46,15 +46,15 @@ botLoop logger token offset = do
       result <- processUpdates logger updates
       case result of
         Nothing -> do
-          Logger.debug logger "No updates or disconnected."
+          Logger.debug logger ("No updates or disconnected." :: String)
           botLoop logger token offset
         Just newOffset -> do
-          Logger.info logger $ "Offset: " ++ show newOffset
+          Logger.info logger newOffset
           botLoop logger token (Just $ succ newOffset)
 
 processUpdates :: Logger.Handle -> [TG.Update] -> IO (Maybe Offset)
 processUpdates logger updates = do
-  mapM_ (execute logger) $ mapMaybe fromUpdate updates
+  mapM_ (execute logger) $ mapMaybe toCommand updates
   return $ nextOffset updates
 
 nextOffset :: [TG.Update] -> Maybe Offset
@@ -62,8 +62,8 @@ nextOffset updates = case latest updates of
   Nothing -> Nothing
   Just update -> Just $ Offset $ TG.uId update
 
-fromUpdate :: TG.Update -> Maybe Command
-fromUpdate update = TG.uMessage update >>= TG.mText >>= Just . fromText
+toCommand :: TG.Update -> Maybe Command
+toCommand update = TG.uMessage update >>= TG.mText >>= Just . fromText
 
 fromText :: T.Text -> Command
 fromText t
@@ -72,4 +72,4 @@ fromText t
   | otherwise = Action t
 
 execute :: Logger.Handle -> Command -> IO ()
-execute logger command = Logger.info logger $ show command
+execute = Logger.info

@@ -29,7 +29,13 @@ newtype Host = Host {unHost :: BC.ByteString}
 
 newtype Timeout = Timeout {unTimeout :: Integer}
 
-newtype Offset = Offset {unOffset :: Integer} deriving (Show, Enum)
+instance Show Timeout where
+  show t = show $ unTimeout t
+
+newtype Offset = Offset {unOffset :: Integer} deriving (Enum)
+
+instance Show Offset where
+  show = show . unOffset
 
 data APIMethod = GetUpdates | SendMessage | AnswerCallbackQuery
 
@@ -37,9 +43,6 @@ instance Show APIMethod where
   show GetUpdates = "getUpdates"
   show SendMessage = "sendMessage"
   show AnswerCallbackQuery = "answerCallbackQuery"
-
-instance Show Timeout where
-  show t = show $ unTimeout t
 
 buildRequest :: Token -> RequestMethod -> Host -> APIMethod -> Request
 buildRequest token requestMethod host method =
