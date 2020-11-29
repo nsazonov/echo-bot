@@ -1,5 +1,6 @@
 module API.Telegram
   ( GetUpdatesResponse (..),
+    SendMessageResponse (..),
     Update (..),
     Message (..),
     Chat (..),
@@ -14,6 +15,8 @@ import qualified Data.Aeson as A
 import qualified Data.Text as T
 
 data GetUpdatesResponse = GetUpdatesResponse {guOk :: Bool, guResult :: [Update]} deriving (Show)
+
+data SendMessageResponse = SendMessageResponse {smOk :: Bool, smResult :: Message} deriving (Show)
 
 data Update = Update {uId :: Integer, uMessage :: Maybe Message} deriving (Show)
 
@@ -80,6 +83,13 @@ instance A.FromJSON GetUpdatesResponse where
       guOk <- o A..: "ok"
       guResult <- o A..: "result"
       return GetUpdatesResponse {..}
+
+instance A.FromJSON SendMessageResponse where
+  parseJSON = A.withObject "FromJSON API.Telegram.SendMessageResponse" $ \o ->
+    do
+      smOk <- o A..: "ok"
+      smResult <- o A..: "result"
+      return SendMessageResponse {..}
 
 instance A.FromJSON OutgoingMessage where
   parseJSON = A.withObject "FromJSON API.Telegram.OutgoingMessage" $ \o -> do

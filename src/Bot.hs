@@ -48,7 +48,7 @@ botLoop :: Handle -> Token -> Maybe Offset -> IO ()
 botLoop handle token offset = do
   let timeout = Just $ Timeout 100
   Logger.debug (hLogger handle) ("Waiting " ++ show (fromJust timeout) ++ " seconds")
-  response <- runGetUpdate $ getUpdatesRequest token offset timeout
+  response <- runGetUpdate (hLogger handle) $ getUpdatesRequest token offset timeout
   case response of
     Left e -> do
       Logger.error (hLogger handle) e
@@ -86,7 +86,7 @@ execute :: Handle -> Target -> Command -> IO ()
 execute handle target (Action t) = do
   let token = cToken $ hConfig handle
   let message = TG.OutgoingMessage {omChatId = unTarget target, omText = t, omReplyMarkup = Nothing}
-  result <- runSendMessage $ sendMessageRequest token message
+  result <- runSendMessage (hLogger handle) $ sendMessageRequest token message
   case result of
     Left e -> Logger.error (hLogger handle) e
     Right _ -> Logger.info (hLogger handle) ("Message has been sent" :: String)

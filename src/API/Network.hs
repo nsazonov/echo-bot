@@ -14,8 +14,10 @@ module API.Network
 where
 
 import qualified API.Telegram as TG
+import Control.Exception (try, displayException)
 import qualified Data.ByteString.Char8 as BC
 import Data.List
+import qualified Logger
 import Network.HTTP.Simple
 
 telegramHost :: Host
@@ -76,22 +78,30 @@ answerCallback token c =
   setRequestBodyJSON c $
     buildRequest token POST telegramHost AnswerCallbackQuery
 
-runGetUpdate :: Request -> IO (Either String [TG.Update])
-runGetUpdate request = do
+runGetUpdate :: Logger.Handle -> Request -> IO (Either String [TG.Update])
+runGetUpdate logger request = do
   response <-
-    httpJSONEither request ::
+    try $ httpJSONEither request ::
       IO
-        (Response (Either JSONException TG.GetUpdatesResponse))
-  case getResponseBody response of
-    (Left exception) -> return $ Left $ show exception
-    (Right updateResponse) -> return (Right $ TG.guResult updateResponse)
+        (Either HttpException (Response (Either JSONException TG.GetUpdatesResponse)))
+  case response of
+    Left e -> do
+      Logger.error logger $ displayException (e :: HttpException)
+      return $ Left $ show e
+    Right resp -> do
+      Logger.debug logger ("getUpdate status: " ++ show (getResponseStatusCode resp))
+      case getResponseBody resp of
+        (Left exception) -> return $ Left $ show exception
+        (Right updateResponse) -> return (Right $ TG.guResult updateResponse)
 
-runSendMessage :: Request -> IO (Either String TG.Message)
-runSendMessage request = do
-  response <- httpJSONEither request :: IO (Response (Either JSONException TG.Message))
+runSendMessage :: Logger.Handle -> Request -> IO (Either String TG.Message)
+runSendMessage logger request = do
+  response <- httpJSONEither request :: IO (Response (Either JSONException TG.SendMessageResponse))
+  Logger.debug logger ("sendMessage response:" :: String)
+  Logger.debug logger response
   case getResponseBody response of
     (Left exception) -> return $ Left $ show exception
-    (Right m) -> return (Right m)
+    (Right smResponse) -> return (Right $ TG.smResult smResponse)
 
 safeHead :: [a] -> Maybe a
 safeHead [] = Nothing
