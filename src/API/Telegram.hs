@@ -2,6 +2,7 @@ module API.Telegram
   ( GetUpdatesResponse (..),
     Update (..),
     Message (..),
+    Chat (..),
     OutgoingMessage (..),
     InlineKeyboardMarkup (..),
     InlineKeyboardButton (..),
@@ -10,15 +11,17 @@ module API.Telegram
 where
 
 import qualified Data.Aeson as A
-import Data.Text as T
+import qualified Data.Text as T
 
 data GetUpdatesResponse = GetUpdatesResponse {guOk :: Bool, guResult :: [Update]} deriving (Show)
 
 data Update = Update {uId :: Integer, uMessage :: Maybe Message} deriving (Show)
 
-data Message = Message {mId :: Integer, mText :: Maybe T.Text} deriving (Show)
+data Message = Message {mId :: Integer, mText :: Maybe T.Text, mChat :: Chat} deriving (Show)
 
-data OutgoingMessage = OutgoingMessage {omChatId :: Integer, omText :: T.Text, omReplyMarkup :: InlineKeyboardMarkup} deriving (Show)
+newtype Chat = Chat {cId :: Integer} deriving (Show)
+
+data OutgoingMessage = OutgoingMessage {omChatId :: Integer, omText :: T.Text, omReplyMarkup :: Maybe InlineKeyboardMarkup} deriving (Show)
 
 data CallbackAnswer = CallbackAnswer {caQueryId :: T.Text, caText :: T.Text} deriving (Show)
 
@@ -38,11 +41,13 @@ instance A.ToJSON CallbackAnswer where
 
 instance A.ToJSON OutgoingMessage where
   toJSON p =
-    A.object
-      [ "chat_id" A..= omChatId p,
-        "text" A..= omText p,
-        "reply_markup" A..= omReplyMarkup p
-      ]
+    A.object $
+      filter
+        ((/= A.Null) . snd)
+        [ "chat_id" A..= omChatId p,
+          "text" A..= omText p,
+          "reply_markup" A..= omReplyMarkup p
+        ]
 
 instance A.ToJSON InlineKeyboardMarkup where
   toJSON p = A.object ["inline_keyboard" A..= ikmKeyboard p]
@@ -51,10 +56,16 @@ instance A.ToJSON InlineKeyboardButton where
   toJSON p =
     A.object ["text" A..= ikbText p, "callback_data" A..= ikbCallBackData p]
 
+instance A.FromJSON Chat where
+  parseJSON = A.withObject "FromJSON API.Telegram.Chat" $ \o -> do
+    cId <- o A..: "id"
+    return Chat {..}
+
 instance A.FromJSON Message where
   parseJSON = A.withObject "FromJSON API.Telegram.Message" $ \o -> do
     mId <- o A..: "message_id"
     mText <- o A..: "text"
+    mChat <- o A..: "chat"
     return Message {..}
 
 instance A.FromJSON Update where

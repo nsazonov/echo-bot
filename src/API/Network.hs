@@ -86,8 +86,12 @@ runGetUpdate request = do
     (Left exception) -> return $ Left $ show exception
     (Right updateResponse) -> return (Right $ TG.guResult updateResponse)
 
-runSendMessage :: Request -> IO (Response TG.Message)
-runSendMessage = httpJSON
+runSendMessage :: Request -> IO (Either String TG.Message)
+runSendMessage request = do
+  response <- httpJSONEither request :: IO (Response (Either JSONException TG.Message))
+  case getResponseBody response of
+    (Left exception) -> return $ Left $ show exception
+    (Right m) -> return (Right m)
 
 safeHead :: [a] -> Maybe a
 safeHead [] = Nothing
