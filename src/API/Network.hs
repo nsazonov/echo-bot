@@ -84,7 +84,7 @@ runAnswerCallback logger request = do
   response <- try $ httpJSONEither request :: IO (Either HttpException (Response (Either JSONException ())))
   case response of
     Left e -> do
-      Logger.error logger $ displayException (e :: HttpException) -- ^ TODO: Handle timeout exception only
+      Logger.error logger $ displayException (e :: HttpException) -- TODO: Handle timeout exception only
       return $ Left $ show e
     Right _ -> return $ Right ()
 
@@ -96,7 +96,7 @@ runGetUpdate logger request = do
         (Either HttpException (Response (Either JSONException TG.GetUpdatesResponse)))
   case response of
     Left e -> do
-      Logger.error logger $ displayException (e :: HttpException) -- ^ TODO: Handle timeout exception only
+      Logger.error logger $ displayException (e :: HttpException) -- TODO: Handle timeout exception only
       return $ Left $ show e
     Right resp -> do
       Logger.debug logger ("getUpdate status: " ++ show (getResponseStatusCode resp))
