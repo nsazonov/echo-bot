@@ -16,7 +16,7 @@ where
 import qualified API.Telegram as TG
 import Control.Exception (try, displayException)
 import qualified Data.ByteString.Char8 as BC
-import Data.List
+import Data.List (sort)
 import qualified Logger
 import Network.HTTP.Simple
 
@@ -86,7 +86,7 @@ runGetUpdate logger request = do
         (Either HttpException (Response (Either JSONException TG.GetUpdatesResponse)))
   case response of
     Left e -> do
-      Logger.error logger $ displayException (e :: HttpException)
+      Logger.error logger $ displayException (e :: HttpException) -- ^ TODO: Handle timeout exception only
       return $ Left $ show e
     Right resp -> do
       Logger.debug logger ("getUpdate status: " ++ show (getResponseStatusCode resp))

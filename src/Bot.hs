@@ -5,13 +5,13 @@ where
 
 import API.Network
 import qualified API.Telegram as TG
+import Control.Monad (replicateM_)
 import qualified Data.ByteString.Char8 as BC
 import Data.Maybe
 import qualified Data.Text as T
 import qualified Logger
 import System.Environment
 import System.Exit (exitFailure)
-import Control.Monad (replicateM_)
 
 main :: IO ()
 main = do
@@ -56,6 +56,7 @@ botLoop handle token offset = do
       Logger.error (hLogger handle) e
       botLoop handle token offset
     Right updates -> do
+      Logger.debug (hLogger handle) ("Received " ++ show (length updates) ++ " updates")
       result <- processUpdates handle updates
       case result of
         Nothing -> do
@@ -68,6 +69,7 @@ botLoop handle token offset = do
 processUpdates :: Handle -> [TG.Update] -> IO (Maybe Offset)
 processUpdates handle updates = do
   mapM_ (uncurry (execute handle)) $ mapMaybe toCommand updates
+  Logger.debug (hLogger handle) ("Finished processing the updates" :: String)
   return $ nextOffset updates
 
 nextOffset :: [TG.Update] -> Maybe Offset
@@ -81,16 +83,27 @@ toCommand update = TG.uMessage update >>= \message -> TG.mText message >>= \text
 fromText :: T.Text -> Command
 fromText t
   | "/help" `T.isPrefixOf` t = Help
+  | "/start" `T.isPrefixOf` t = Help
   | "/repeat" `T.isPrefixOf` t = Repeat
   | otherwise = Action t
 
 execute :: Handle -> Target -> Command -> IO ()
+execute handle target Repeat = do
+  let token = cToken $ hConfig handle
+  let repeatNumber = cDefaultRepeatNumber $ hConfig handle
+  let statusMessage = "Current repeat number is " ++ show repeatNumber
+  let kb = TG.InlineKeyboardMarkup [[TG.InlineKeyboardButton {ikbText = "1", ikbCallBackData = "1"}, TG.InlineKeyboardButton {ikbText = "2", ikbCallBackData = "2"}, TG.InlineKeyboardButton {ikbText = "3", ikbCallBackData = "3"}]]
+  let message = TG.OutgoingMessage {omChatId = unTarget target, omText = T.pack statusMessage, omReplyMarkup = Just kb}
+  _ <- runSendMessage (hLogger handle) $ sendMessageRequest token message -- TODO: log errors
+  return ()
+execute handle target Help = do
+  let token = cToken $ hConfig handle
+  let greetingsMessage = cGreetings $ hConfig handle
+  let message = TG.OutgoingMessage {omChatId = unTarget target, omText = greetingsMessage, omReplyMarkup = Nothing}
+  _ <- runSendMessage (hLogger handle) $ sendMessageRequest token message -- TODO: log errors
+  return ()
 execute handle target (Action t) = do
   let token = cToken $ hConfig handle
   let times = cDefaultRepeatNumber $ hConfig handle
   let message = TG.OutgoingMessage {omChatId = unTarget target, omText = t, omReplyMarkup = Nothing}
-  replicateM_ times $ runSendMessage (hLogger handle) $ sendMessageRequest token message
---  case result of
---    Left e -> Logger.error (hLogger handle) e
---    Right _ -> Logger.info (hLogger handle) ("Message has been sent" :: String)
-execute handle _ command = Logger.info (hLogger handle) command
+  replicateM_ times $ runSendMessage (hLogger handle) $ sendMessageRequest token message -- TODO: log failed messages here  

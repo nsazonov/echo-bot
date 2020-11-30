@@ -36,7 +36,7 @@ instance Eq Update where
   (==) a b = uId a == uId b
 
 instance Ord Update where
-  compare a b = a `compare` b
+  compare a b = uId a `compare` uId b
 
 instance A.ToJSON CallbackAnswer where
   toJSON p =
