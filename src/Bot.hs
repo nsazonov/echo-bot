@@ -11,6 +11,7 @@ import qualified Data.Text as T
 import qualified Logger
 import System.Environment
 import System.Exit (exitFailure)
+import Control.Monad (replicateM_)
 
 main :: IO ()
 main = do
@@ -23,7 +24,8 @@ main = do
           { hConfig =
               Config
                 { cToken = Token $ BC.pack token,
-                  cGreetings = "Hello, this is Echo bot."
+                  cGreetings = "Hello, this is Echo bot.",
+                  cDefaultRepeatNumber = 3
                 },
             hLogger = logger
           }
@@ -33,7 +35,7 @@ main = do
       putStrLn $ "Usage: " ++ progName ++ " <conf>"
       exitFailure
 
-data Config = Config {cToken :: Token, cGreetings :: T.Text} deriving (Show)
+data Config = Config {cToken :: Token, cGreetings :: T.Text, cDefaultRepeatNumber :: Int} deriving (Show)
 
 data Handle = Handle {hConfig :: Config, hLogger :: Logger.Handle} deriving (Show)
 
@@ -85,9 +87,10 @@ fromText t
 execute :: Handle -> Target -> Command -> IO ()
 execute handle target (Action t) = do
   let token = cToken $ hConfig handle
+  let times = cDefaultRepeatNumber $ hConfig handle
   let message = TG.OutgoingMessage {omChatId = unTarget target, omText = t, omReplyMarkup = Nothing}
-  result <- runSendMessage (hLogger handle) $ sendMessageRequest token message
-  case result of
-    Left e -> Logger.error (hLogger handle) e
-    Right _ -> Logger.info (hLogger handle) ("Message has been sent" :: String)
+  replicateM_ times $ runSendMessage (hLogger handle) $ sendMessageRequest token message
+--  case result of
+--    Left e -> Logger.error (hLogger handle) e
+--    Right _ -> Logger.info (hLogger handle) ("Message has been sent" :: String)
 execute handle _ command = Logger.info (hLogger handle) command
