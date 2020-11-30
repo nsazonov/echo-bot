@@ -1,11 +1,12 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
 module API.Network
-  ( getUpdatesRequest,
+  ( answerCallback,
+    getUpdatesRequest,
     sendMessageRequest,
+    runAnswerCallback,
     runGetUpdate,
     runSendMessage,
-    answerCallback,
     latest,
     Timeout (..),
     Token (..),
@@ -77,6 +78,15 @@ answerCallback :: Token -> TG.CallbackAnswer -> Request
 answerCallback token c =
   setRequestBodyJSON c $
     buildRequest token POST telegramHost AnswerCallbackQuery
+
+runAnswerCallback :: Logger.Handle -> Request -> IO (Either String ())
+runAnswerCallback logger request = do
+  response <- try $ httpJSONEither request :: IO (Either HttpException (Response (Either JSONException ())))
+  case response of
+    Left e -> do
+      Logger.error logger $ displayException (e :: HttpException) -- ^ TODO: Handle timeout exception only
+      return $ Left $ show e
+    Right _ -> return $ Right ()
 
 runGetUpdate :: Logger.Handle -> Request -> IO (Either String [TG.Update])
 runGetUpdate logger request = do

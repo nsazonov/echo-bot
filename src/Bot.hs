@@ -39,7 +39,7 @@ data Config = Config {cToken :: Token, cGreetings :: T.Text, cDefaultRepeatNumbe
 
 data Handle = Handle {hConfig :: Config, hLogger :: Logger.Handle} deriving (Show)
 
-data Command = Action T.Text | Help | Repeat deriving (Show)
+data Command = Action T.Text | Help | Repeat | RepeatAnswer Int deriving (Show)
 
 newtype Target = Target {unTarget :: Int} deriving (Show)
 
@@ -89,6 +89,11 @@ fromText t
   | otherwise = Action t
 
 execute :: Handle -> Target -> Command -> IO ()
+execute handle _ (RepeatAnswer cTimes) = do
+  let token = cToken $ hConfig handle
+  let message = TG.CallbackAnswer {caQueryId = "123", caText = T.pack $ "Repeat number is set to " ++ show cTimes}
+  _ <- runAnswerCallback (hLogger handle) $ answerCallback token message
+  return ()
 execute handle target Repeat = do
   let token = cToken $ hConfig handle
   let repeatNumber = cDefaultRepeatNumber $ hConfig handle
