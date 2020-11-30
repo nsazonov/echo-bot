@@ -1,0 +1,55 @@
+{
+  "ok": true,
+  "result": [
+    {
+      "update_id": 937106843,
+      "callback_query": {
+        "id": "239449024270568821",
+        "from": {
+          "id": 55751070,
+          "is_bot": false,
+          "first_name": "Nikolay",
+          "last_name": "Sazonov",
+          "language_code": "en"
+        },
+        "message": {
+          "message_id": 195,
+          "from": {
+            "id": 1405156729,
+            "is_bot": true,
+            "first_name": "Nikolay's Echo Bot",
+            "username": "nsazonovechobot"
+          },
+          "chat": {
+            "id": 55751070,
+            "first_name": "Nikolay",
+            "last_name": "Sazonov",
+            "type": "private"
+          },
+          "date": 1606706190,
+          "text": "Current repeat number is 3",
+          "reply_markup": {
+            "inline_keyboard": [
+              [
+                {
+                  "text": "1",
+                  "callback_data": "1"
+                },
+                {
+                  "text": "2",
+                  "callback_data": "2"
+                },
+                {
+                  "text": "3",
+                  "callback_data": "3"
+                }
+              ]
+            ]
+          }
+        },
+        "chat_instance": "-2569691659767291170",
+        "data": "2"
+      }
+    }
+  ]
+}

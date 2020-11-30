@@ -12,15 +12,22 @@ main = hspec spec
 telegramMessage :: FilePath
 telegramMessage = "test/data/telegramMessage.json"
 
+telegramCallback :: FilePath
+telegramCallback = "test/data/telegramCallback.json"
+
 withJsonFile :: FilePath -> (B.ByteString -> IO ()) -> IO ()
 withJsonFile p f = B.readFile p >>= f
 
-getUpdates :: (TG.GetUpdatesResponse -> IO ()) -> IO ()
-getUpdates f = withJsonFile telegramMessage (f . fromJust . decode)
+getUpdates :: FilePath -> (TG.GetUpdatesResponse -> IO ()) -> IO ()
+getUpdates file f = withJsonFile file (f . fromJust . decode)
 
 spec :: Spec
 spec = do
-  around getUpdates $ do
+  around (getUpdates telegramCallback) $ do
+    describe "parse updates for inline keyboard callback" $ do
+      it "shoud be successful" $ \resp -> do
+        TG.guOk resp `shouldBe` True
+  around (getUpdates telegramMessage) $ do
     describe "parse getUpdates json" $ do
       it "should be successful" $ \resp -> do
         TG.guOk resp `shouldBe` True

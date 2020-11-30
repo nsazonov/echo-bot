@@ -57,6 +57,7 @@ botLoop handle token offset = do
       botLoop handle token offset
     Right updates -> do
       Logger.debug (hLogger handle) ("Received " ++ show (length updates) ++ " updates")
+      Logger.debug (hLogger handle) updates
       result <- processUpdates handle updates
       case result of
         Nothing -> do
