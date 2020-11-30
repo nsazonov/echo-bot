@@ -41,7 +41,7 @@ data Handle = Handle {hConfig :: Config, hLogger :: Logger.Handle} deriving (Sho
 
 data Command = Action T.Text | Help | Repeat deriving (Show)
 
-newtype Target = Target {unTarget :: Integer} deriving (Show)
+newtype Target = Target {unTarget :: Int} deriving (Show)
 
 runLoop :: Handle -> Maybe Offset -> IO ()
 runLoop handle = botLoop handle (cToken . hConfig $ handle)

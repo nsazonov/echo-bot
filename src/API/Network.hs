@@ -34,7 +34,7 @@ newtype Timeout = Timeout {unTimeout :: Integer}
 instance Show Timeout where
   show t = show $ unTimeout t
 
-newtype Offset = Offset {unOffset :: Integer} deriving (Enum)
+newtype Offset = Offset {unOffset :: Int} deriving (Enum)
 
 instance Show Offset where
   show = show . unOffset

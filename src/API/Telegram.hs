@@ -18,13 +18,13 @@ data GetUpdatesResponse = GetUpdatesResponse {guOk :: Bool, guResult :: [Update]
 
 data SendMessageResponse = SendMessageResponse {smOk :: Bool, smResult :: Message} deriving (Show)
 
-data Update = Update {uId :: Integer, uMessage :: Maybe Message} deriving (Show)
+data Update = Update {uId :: Int, uMessage :: Maybe Message} deriving (Show)
 
-data Message = Message {mId :: Integer, mText :: Maybe T.Text, mChat :: Chat} deriving (Show)
+data Message = Message {mId :: Int, mText :: Maybe T.Text, mChat :: Chat} deriving (Show)
 
-newtype Chat = Chat {cId :: Integer} deriving (Show)
+newtype Chat = Chat {cId :: Int} deriving (Show)
 
-data OutgoingMessage = OutgoingMessage {omChatId :: Integer, omText :: T.Text, omReplyMarkup :: Maybe InlineKeyboardMarkup} deriving (Show)
+data OutgoingMessage = OutgoingMessage {omChatId :: Int, omText :: T.Text, omReplyMarkup :: Maybe InlineKeyboardMarkup} deriving (Show)
 
 data CallbackAnswer = CallbackAnswer {caQueryId :: T.Text, caText :: T.Text} deriving (Show)
 
