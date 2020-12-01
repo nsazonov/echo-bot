@@ -29,7 +29,7 @@ data OutgoingMessage = OutgoingMessage {omChatId :: Int, omText :: T.Text, omRep
 
 data CallbackAnswer = CallbackAnswer {caQueryId :: T.Text, caText :: T.Text} deriving (Show)
 
-data CallbackQuery = CallbackQuery {cqId :: T.Text, cqData :: T.Text} deriving (Show)
+data CallbackQuery = CallbackQuery {cqId :: T.Text, cqData :: T.Text, cqMessage :: Maybe Message} deriving (Show)
 
 newtype InlineKeyboardMarkup = InlineKeyboardMarkup {ikmKeyboard :: [[InlineKeyboardButton]]} deriving (Show)
 
@@ -78,7 +78,7 @@ instance A.FromJSON Update where
   parseJSON = A.withObject "FromJSON API.Telegram.Update" $ \o -> do
     uId <- o A..: "update_id"
     uMessage <- o A..:? "message"
-    uCallbackQuery <- o A..:? "callback_query"
+    uCallbackQuery <- o A..:? "callback_query"    
     return Update {..}
 
 instance A.FromJSON GetUpdatesResponse where
@@ -125,5 +125,6 @@ instance A.FromJSON CallbackQuery where
   parseJSON = A.withObject "FromJSON API.Telegram.CallbackQuery" $ \o -> do
     cqId <- o A..: "id"
     cqData <- o A..: "data"
+    cqMessage <- o A..:? "message"
     return CallbackQuery {..}
 

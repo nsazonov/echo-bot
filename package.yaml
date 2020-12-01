@@ -24,6 +24,7 @@ dependencies:
 - bytestring
 - http-conduit
 - text
+- containers
 
 default-extensions: OverloadedStrings, RecordWildCards
 
