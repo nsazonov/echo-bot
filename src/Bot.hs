@@ -45,41 +45,42 @@ data Command = Action T.Text | Help | Repeat | RepeatAnswer T.Text Int deriving 
 
 newtype Target = Target {unTarget :: Int} deriving (Show)
 
-type ClientSettings = Map.Map TG.Chat Int
+type ClientSettings = Map.Map Target Int
 
 runLoop :: Handle -> Maybe Offset -> IO ()
-runLoop handle = botLoop handle (cToken . hConfig $ handle) Map.empty
+runLoop handle = botLoop handle Map.empty
 
-botLoop :: Handle -> Token -> ClientSettings -> Maybe Offset -> IO ()
-botLoop handle token settings offset = do
+botLoop :: Handle -> ClientSettings -> Maybe Offset -> IO ()
+botLoop handle settings offset = do
   let timeout = Just $ Timeout 100
+  let token = cToken . hConfig $ handle
   Logger.debug (hLogger handle) ("Waiting " ++ show (fromJust timeout) ++ " seconds")
   response <- runGetUpdate (hLogger handle) $ getUpdatesRequest token offset timeout
   case response of
     Left e -> do
       Logger.error (hLogger handle) e
-      botLoop handle token settings offset
+      botLoop handle settings offset
     Right updates -> do
       Logger.debug (hLogger handle) ("Received " ++ show (length updates) ++ " updates")
       Logger.debug (hLogger handle) updates
-      result <- processUpdates handle updates
+      result <- processUpdates handle settings updates
       case result of
         Nothing -> do
           Logger.debug (hLogger handle) ("No updates or disconnected." :: String)
-          botLoop handle token settings offset
-        Just newOffset -> do
+          botLoop handle settings offset
+        Just (newOffset, newSettings) -> do
           Logger.info (hLogger handle) newOffset
-          botLoop handle token settings (Just $ succ newOffset)
+          botLoop handle newSettings (Just $ succ newOffset)
 
-processUpdates :: Handle -> [TG.Update] -> IO (Maybe Offset)
-processUpdates handle updates = do
+processUpdates :: Handle -> ClientSettings -> [TG.Update] -> IO (Maybe (Offset, ClientSettings))
+processUpdates handle settings updates = do
   let callBacks = mapMaybe fromCallbackQuery updates
   let others = mapMaybe fromMessage updates
   Logger.debug (hLogger handle) (("Number of callbacks: " ++ show (length callBacks)) :: String)
   Logger.debug (hLogger handle) (("Number of other commands: " ++ show (length others)) :: String)
-  mapM_ (uncurry (execute handle)) $ callBacks ++ others
+  mapM_ (uncurry (execute handle settings)) $ callBacks ++ others
   Logger.debug (hLogger handle) ("Finished processing the updates" :: String)
-  return $ nextOffset updates
+  return $ (, Map.empty) <$> nextOffset updates
 
 nextOffset :: [TG.Update] -> Maybe Offset
 nextOffset updates = case latest updates of
@@ -107,30 +108,31 @@ parseData t = case decimal t of
   Left _ -> Nothing
   Right v -> Just $ fromInteger $ fst v
 
-execute :: Handle -> Target -> Command -> IO ()
-execute handle _ (RepeatAnswer queryId repeatNumber) = do
+execute :: Handle -> ClientSettings -> Target -> Command -> IO ClientSettings
+execute handle settings _ (RepeatAnswer queryId repeatNumber) = do
   let token = cToken $ hConfig handle
   let message = TG.CallbackAnswer {caQueryId = queryId, caText = T.pack $ "Repeat number is set to " ++ show repeatNumber}
   Logger.debug (hLogger handle) ("Will send callback answer" ++ show message :: String)
   _ <- runAnswerCallback (hLogger handle) $ answerCallback token message
   Logger.debug (hLogger handle) ("Answer callback sent" :: String)
-  return ()
-execute handle target Repeat = do
+  return settings
+execute handle settings target Repeat = do
   let token = cToken $ hConfig handle
   let repeatNumber = cDefaultRepeatNumber $ hConfig handle
   let statusMessage = "Current repeat number is " ++ show repeatNumber
   let kb = TG.InlineKeyboardMarkup [[TG.InlineKeyboardButton {ikbText = "1", ikbCallBackData = "1"}, TG.InlineKeyboardButton {ikbText = "2", ikbCallBackData = "2"}, TG.InlineKeyboardButton {ikbText = "3", ikbCallBackData = "3"}]]
   let message = TG.OutgoingMessage {omChatId = unTarget target, omText = T.pack statusMessage, omReplyMarkup = Just kb}
   _ <- runSendMessage (hLogger handle) $ sendMessageRequest token message -- TODO: log errors
-  return ()
-execute handle target Help = do
+  return settings
+execute handle settings target Help = do
   let token = cToken $ hConfig handle
   let greetingsMessage = cGreetings $ hConfig handle
   let message = TG.OutgoingMessage {omChatId = unTarget target, omText = greetingsMessage, omReplyMarkup = Nothing}
   _ <- runSendMessage (hLogger handle) $ sendMessageRequest token message -- TODO: log errors
-  return ()
-execute handle target (Action t) = do
+  return settings
+execute handle settings target (Action t) = do
   let token = cToken $ hConfig handle
   let times = cDefaultRepeatNumber $ hConfig handle
   let message = TG.OutgoingMessage {omChatId = unTarget target, omText = t, omReplyMarkup = Nothing}
   replicateM_ times $ runSendMessage (hLogger handle) $ sendMessageRequest token message -- TODO: log failed messages here
+  return settings
