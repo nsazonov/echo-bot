@@ -1,5 +1,9 @@
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+
 module API.Telegram
   ( GetUpdatesResponse (..),
+    TelegramEndpoint (..),
+    Offset (..),
     SendMessageResponse (..),
     Update (..),
     Message (..),
@@ -12,8 +16,53 @@ module API.Telegram
   )
 where
 
+import API.Types
 import qualified Data.Aeson as A
+import qualified Data.ByteString.Char8 as BC
 import qualified Data.Text as T
+import Network.HTTP.Simple
+
+telegramHost :: Host
+telegramHost = Host "api.telegram.org"
+
+data APIMethod = APIGetUpdates | APISendMessage | APIAnswerCallbackQuery
+
+newtype Offset = Offset {unOffset :: Int} deriving (Enum)
+
+instance Show Offset where
+  show = show . unOffset
+
+instance Show APIMethod where
+  show APIGetUpdates = "getUpdates"
+  show APISendMessage = "sendMessage"
+  show APIAnswerCallbackQuery = "answerCallbackQuery"
+
+buildRequest :: Token -> RequestMethod -> Host -> BC.ByteString -> Request
+buildRequest token requestMethod host method =
+  setRequestMethod (BC.pack $ show requestMethod) $
+    setRequestPath ("/" <> unToken token <> "/" <> method) $
+      setRequestHost (unHost host) $
+        setRequestSecure True $
+          setRequestPort 443 defaultRequest
+
+data TelegramEndpoint = GetUpdates (Maybe Offset) (Maybe Timeout) | SendMessage OutgoingMessage | AnswerCallbackQuery CallbackAnswer
+
+instance EndpointBuilder TelegramEndpoint where
+  request token (GetUpdates offset timeout) =
+    let r = buildRequest token GET telegramHost $ BC.pack $ show APIGetUpdates
+     in setRequestQueryString
+          ( maybe
+              []
+              ( \t ->
+                  [ ("timeout", Just (BC.pack $ show (unTimeout t))),
+                    ("offset", fmap (BC.pack . show . unOffset) offset)
+                  ]
+              )
+              timeout
+          ) -- TODO: this is very ugly, consider creating ad-hoc type with moniid properties and toQueryString func
+          r
+  request token (SendMessage m) = setRequestBodyJSON m $ buildRequest token POST telegramHost $ BC.pack $ show APISendMessage
+  request token (AnswerCallbackQuery a) = setRequestBodyJSON a $ buildRequest token POST telegramHost $ BC.pack $ show APIAnswerCallbackQuery
 
 data GetUpdatesResponse = GetUpdatesResponse {guOk :: Bool, guResult :: [Update]} deriving (Show)
 
@@ -78,7 +127,7 @@ instance A.FromJSON Update where
   parseJSON = A.withObject "FromJSON API.Telegram.Update" $ \o -> do
     uId <- o A..: "update_id"
     uMessage <- o A..:? "message"
-    uCallbackQuery <- o A..:? "callback_query"    
+    uCallbackQuery <- o A..:? "callback_query"
     return Update {..}
 
 instance A.FromJSON GetUpdatesResponse where
@@ -127,4 +176,3 @@ instance A.FromJSON CallbackQuery where
     cqData <- o A..: "data"
     cqMessage <- o A..:? "message"
     return CallbackQuery {..}
-
