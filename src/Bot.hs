@@ -3,11 +3,12 @@ module Bot
   )
 where
 
-import API.Network
+import qualified API.Network as Network
 import qualified API.Telegram as TG
 import API.Types
 import Control.Monad (replicateM_)
 import qualified Data.ByteString.Char8 as BC
+import Data.List.Extended
 import qualified Data.Map as Map
 import Data.Maybe
 import qualified Data.Text as T
@@ -56,7 +57,7 @@ botLoop handle settings offset = do
   let timeout = Just $ Timeout 100
   let token = cToken . hConfig $ handle
   Logger.debug (hLogger handle) ("Waiting " ++ show (fromJust timeout) ++ " seconds")
-  response <- runGetUpdate (hLogger handle) $ request token $ TG.GetUpdates offset timeout
+  response <- Network.run (hLogger handle) $ request token $ TG.GetUpdates offset timeout
   case response of
     Left e -> do
       Logger.error (hLogger handle) e
@@ -114,7 +115,7 @@ execute handle settings _ (RepeatAnswer queryId repeatNumber) = do
   let token = cToken $ hConfig handle
   let message = TG.CallbackAnswer {caQueryId = queryId, caText = T.pack $ "Repeat number is set to " ++ show repeatNumber}
   Logger.debug (hLogger handle) ("Will send callback answer" ++ show message :: String)
-  _ <- runAnswerCallback (hLogger handle) $ request token $ TG.AnswerCallbackQuery message
+  _ <- Network.run (hLogger handle) $ request token $ TG.AnswerCallbackQuery message :: IO (Either Network.NetworkError ()) -- TODO: log errors
   Logger.debug (hLogger handle) ("Answer callback sent" :: String)
   return settings
 execute handle settings target Repeat = do
@@ -123,17 +124,17 @@ execute handle settings target Repeat = do
   let statusMessage = "Current repeat number is " ++ show repeatNumber
   let kb = TG.InlineKeyboardMarkup [[TG.InlineKeyboardButton {ikbText = "1", ikbCallBackData = "1"}, TG.InlineKeyboardButton {ikbText = "2", ikbCallBackData = "2"}, TG.InlineKeyboardButton {ikbText = "3", ikbCallBackData = "3"}]]
   let message = TG.OutgoingMessage {omChatId = unTarget target, omText = T.pack statusMessage, omReplyMarkup = Just kb}
-  _ <- runSendMessage (hLogger handle) $ request token $ TG.SendMessage message -- TODO: log errors
+  _ <- Network.run (hLogger handle) $ request token $ TG.SendMessage message :: IO (Either Network.NetworkError TG.Message) -- TODO: log errors
   return settings
 execute handle settings target Help = do
   let token = cToken $ hConfig handle
   let greetingsMessage = cGreetings $ hConfig handle
   let message = TG.OutgoingMessage {omChatId = unTarget target, omText = greetingsMessage, omReplyMarkup = Nothing}
-  _ <- runSendMessage (hLogger handle) $ request token $ TG.SendMessage message -- TODO: log errors
+  _ <- Network.run (hLogger handle) $ request token $ TG.SendMessage message :: IO (Either Network.NetworkError TG.Message) -- TODO: log errors
   return settings
 execute handle settings target (Action t) = do
   let token = cToken $ hConfig handle
   let times = cDefaultRepeatNumber $ hConfig handle
   let message = TG.OutgoingMessage {omChatId = unTarget target, omText = t, omReplyMarkup = Nothing}
-  replicateM_ times $ runSendMessage (hLogger handle) $ request token $ TG.SendMessage message -- TODO: log failed messages here
+  replicateM_ times (Network.run (hLogger handle) $ request token $ TG.SendMessage message :: IO (Either Network.NetworkError TG.Message)) -- TODO: log failed messages here
   return settings
