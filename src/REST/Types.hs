@@ -1,4 +1,4 @@
-module API.Types where
+module REST.Types where
 
 import qualified Data.ByteString.Char8 as BC
 import Network.HTTP.Simple (Request)

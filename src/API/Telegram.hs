@@ -16,11 +16,11 @@ module API.Telegram
   )
 where
 
-import API.Types
 import qualified Data.Aeson as A
 import qualified Data.ByteString.Char8 as BC
 import qualified Data.Text as T
 import Network.HTTP.Simple
+import REST.Types
 
 telegramHost :: Host
 telegramHost = Host "api.telegram.org"

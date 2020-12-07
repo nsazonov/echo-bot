@@ -1,4 +1,4 @@
-module API.Network
+module REST.Network
   ( run,
     runAnswerCallback,
     runGetUpdate,
@@ -10,12 +10,12 @@ module API.Network
 where
 
 import qualified API.Telegram as TG
-import API.Types
+import REST.Types
 import Control.Exception
 import qualified Data.Aeson as A
 import qualified Logger
-import Network.HTTP.Client.Conduit (HttpExceptionContent (..))
 import Network.HTTP.Simple
+import Network.HTTP.Simple.Extended
 
 data NetworkError = PollTimeout | HttpError HttpException | ResponseError JSONException deriving (Show)
 
@@ -27,11 +27,6 @@ run _ r = do
     Right v -> case getResponseBody v of
       Left ex -> return $ Left (ResponseError ex)
       Right value -> return $ Right value
-
-isTimeout :: HttpException -> Bool
-isTimeout (HttpExceptionRequest _ ResponseTimeout) = True
-isTimeout (HttpExceptionRequest _ _) = False
-isTimeout _ = False
 
 runAnswerCallback :: Logger.Handle -> Request -> IO (Either String ())
 runAnswerCallback logger r = do

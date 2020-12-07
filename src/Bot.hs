@@ -3,9 +3,7 @@ module Bot
   )
 where
 
-import qualified API.Network as Network
 import qualified API.Telegram as TG
-import API.Types
 import Control.Monad (replicateM_)
 import qualified Data.ByteString.Char8 as BC
 import Data.List.Extended
@@ -14,6 +12,8 @@ import Data.Maybe
 import qualified Data.Text as T
 import Data.Text.Read
 import qualified Logger
+import qualified REST.Network as Network
+import REST.Types
 import System.Environment
 import System.Exit (exitFailure)
 
