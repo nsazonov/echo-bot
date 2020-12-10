@@ -1,5 +1,3 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-
 module API.Telegram
   ( GetUpdatesResponse (..),
     TelegramEndpoint (..),
@@ -26,11 +24,6 @@ telegramHost :: Host
 telegramHost = Host "api.telegram.org"
 
 data APIMethod = APIGetUpdates | APISendMessage | APIAnswerCallbackQuery
-
-newtype Offset = Offset {unOffset :: Int} deriving (Enum)
-
-instance Show Offset where
-  show = show . unOffset
 
 instance Show APIMethod where
   show APIGetUpdates = "getUpdates"

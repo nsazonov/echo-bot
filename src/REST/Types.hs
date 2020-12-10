@@ -1,3 +1,5 @@
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+
 module REST.Types where
 
 import qualified Data.ByteString.Char8 as BC
@@ -10,6 +12,11 @@ newtype Host = Host {unHost :: BC.ByteString}
 newtype Timeout = Timeout {unTimeout :: Integer}
 
 newtype Target = Target {unTarget :: Int} deriving (Show)
+
+newtype Offset = Offset {unOffset :: Int} deriving (Enum)
+
+instance Show Offset where
+  show = show . unOffset
 
 instance Show Timeout where
   show t = show $ unTimeout t

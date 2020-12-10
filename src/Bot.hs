@@ -76,10 +76,10 @@ instance Client Messenger where
     replicateM_ times (Telegram.sendText token logger target t) -- TODO: log failed messages here
     return settings
 
-runLoop :: Config -> Logger.Handle -> Maybe TG.Offset -> IO ()
+runLoop :: Config -> Logger.Handle -> Maybe Offset -> IO ()
 runLoop config logger = botLoop config logger Map.empty
 
-botLoop :: Config -> Logger.Handle -> ClientSettings -> Maybe TG.Offset -> IO ()
+botLoop :: Config -> Logger.Handle -> ClientSettings -> Maybe Offset -> IO ()
 botLoop config logger settings offset = do
   let timeout = Just $ Timeout 100
   let token = cToken config
@@ -101,7 +101,7 @@ botLoop config logger settings offset = do
           Logger.info logger newOffset
           botLoop config logger newSettings (Just $ succ newOffset)
 
-processUpdates :: Config -> Logger.Handle -> ClientSettings -> [TG.Update] -> IO (Maybe (TG.Offset, ClientSettings))
+processUpdates :: Config -> Logger.Handle -> ClientSettings -> [TG.Update] -> IO (Maybe (Offset, ClientSettings))
 processUpdates config logger settings updates = do
   let callBacks = mapMaybe fromCallbackQuery updates
   let others = mapMaybe fromMessage updates
@@ -111,10 +111,10 @@ processUpdates config logger settings updates = do
   Logger.debug logger ("Finished processing the updates" :: String)
   return $ (,Map.empty) <$> nextOffset updates
 
-nextOffset :: [TG.Update] -> Maybe TG.Offset
+nextOffset :: [TG.Update] -> Maybe Offset
 nextOffset updates = case latest updates of
   Nothing -> Nothing
-  Just update -> Just $ TG.Offset $ TG.uId update
+  Just update -> Just $ Offset $ TG.uId update
 
 fromMessage :: TG.Update -> Maybe (Target, Command)
 fromMessage update = TG.uMessage update >>= \message -> TG.mText message >>= \text -> Just (Target $ TG.cId $ TG.mChat message, fromText text)

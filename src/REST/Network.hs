@@ -6,7 +6,6 @@ module REST.Network
   )
 where
 
-import qualified API.Telegram as TG
 import Control.Exception
 import qualified Data.Aeson as A
 import qualified Logger
