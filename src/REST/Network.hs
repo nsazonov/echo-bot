@@ -1,5 +1,5 @@
 module REST.Network
-  ( run,    
+  ( run,
     Timeout (..),
     Token (..),
     NetworkError (..),
@@ -7,12 +7,12 @@ module REST.Network
 where
 
 import qualified API.Telegram as TG
-import REST.Types
 import Control.Exception
 import qualified Data.Aeson as A
 import qualified Logger
 import Network.HTTP.Simple
 import Network.HTTP.Simple.Extended
+import REST.Types
 
 data NetworkError = PollTimeout | HttpError HttpException | ResponseError JSONException deriving (Show)
 
@@ -24,4 +24,3 @@ run _ r = do
     Right v -> case getResponseBody v of
       Left ex -> return $ Left (ResponseError ex)
       Right value -> return $ Right value
-
