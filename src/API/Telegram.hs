@@ -11,11 +11,13 @@ module API.Telegram
     InlineKeyboardButton (..),
     CallbackAnswer (..),
     CallbackQuery (..),
+    nextOffset,
   )
 where
 
 import qualified Data.Aeson as A
 import qualified Data.ByteString.Char8 as BC
+import Data.List.Extended
 import qualified Data.Text as T
 import Network.HTTP.Simple
 import REST.Types
@@ -37,6 +39,11 @@ buildRequest token requestMethod host method =
       setRequestHost (unHost host) $
         setRequestSecure True $
           setRequestPort 443 defaultRequest
+
+nextOffset :: [Update] -> Maybe Offset
+nextOffset updates = case latest updates of
+  Nothing -> Nothing
+  Just update -> Just $ Offset $ uId update
 
 data TelegramEndpoint = GetUpdates (Maybe Offset) (Maybe Timeout) | SendMessage OutgoingMessage | AnswerCallbackQuery CallbackAnswer
 

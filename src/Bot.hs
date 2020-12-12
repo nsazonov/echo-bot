@@ -4,13 +4,12 @@ module Bot
 where
 
 import qualified API.Telegram as TG
+import Commands
 import Control.Monad (replicateM_)
 import qualified Data.ByteString.Char8 as BC
-import Data.List.Extended
 import qualified Data.Map as Map
 import Data.Maybe
 import qualified Data.Text as T
-import Data.Text.Read
 import qualified Logger
 import qualified REST.Client.Telegram as Telegram
 import REST.Types
@@ -40,8 +39,6 @@ main = do
 data Config = Config {cToken :: Token, cGreetings :: T.Text, cDefaultRepeatNumber :: Int, cMessenger :: Messenger} deriving (Show)
 
 data Handle = Handle {hConfig :: Config, hLogger :: Logger.Handle} deriving (Show)
-
-data Command = Action T.Text | Help | Repeat | RepeatAnswer T.Text Int deriving (Show)
 
 type ClientSettings = Map.Map Target Int -- TODO: rename this
 
@@ -78,7 +75,12 @@ instance Client Messenger where
 runLoop :: Config -> Logger.Handle -> Maybe Offset -> IO ()
 runLoop config logger = botLoop config logger Map.empty
 
-botLoop :: Config -> Logger.Handle -> ClientSettings -> Maybe Offset -> IO ()
+botLoop ::
+  Config ->
+  Logger.Handle ->
+  ClientSettings ->
+  Maybe Offset ->
+  IO ()
 botLoop config logger settings offset = do
   let timeout = Just $ Timeout 100
   let token = cToken config
@@ -108,30 +110,4 @@ processUpdates config logger settings updates = do
   Logger.debug logger (("Number of other commands: " ++ show (length others)) :: String)
   mapM_ (uncurry (executeCommand (cMessenger config) config logger settings)) $ callBacks ++ others
   Logger.debug logger ("Finished processing the updates" :: String)
-  return $ (,Map.empty) <$> nextOffset updates
-
-nextOffset :: [TG.Update] -> Maybe Offset
-nextOffset updates = case latest updates of
-  Nothing -> Nothing
-  Just update -> Just $ Offset $ TG.uId update
-
-fromMessage :: TG.Update -> Maybe (Target, Command)
-fromMessage update = TG.uMessage update >>= \message -> TG.mText message >>= \text -> Just (Target $ TG.cId $ TG.mChat message, fromText text)
-  where
-    fromText t
-      | "/help" `T.isPrefixOf` t = Help
-      | "/start" `T.isPrefixOf` t = Help
-      | "/repeat" `T.isPrefixOf` t = Repeat
-      | otherwise = Action t
-
-fromCallbackQuery :: TG.Update -> Maybe (Target, Command)
-fromCallbackQuery update =
-  TG.uCallbackQuery update >>= \callback ->
-    parseData (TG.cqData callback) >>= \repeatNumber ->
-      TG.cqMessage callback >>= \message ->
-        Just (Target $ TG.cId $ TG.mChat message, RepeatAnswer (TG.cqId callback) repeatNumber)
-
-parseData :: T.Text -> Maybe Int
-parseData t = case decimal t of
-  Left _ -> Nothing
-  Right v -> Just $ fromInteger $ fst v
+  return $ (,Map.empty) <$> TG.nextOffset updates
