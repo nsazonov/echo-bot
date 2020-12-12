@@ -12,9 +12,8 @@ import Data.Maybe
 import qualified Data.Text as T
 import Data.Text.Read
 import qualified Logger
-import qualified REST.Network as Network
-import REST.Types
 import qualified REST.Client.Telegram as Telegram
+import REST.Types
 import System.Environment
 import System.Exit (exitFailure)
 
@@ -49,7 +48,7 @@ type ClientSettings = Map.Map Target Int -- TODO: rename this
 data Messenger = VK | Telegram | Test deriving (Show)
 
 class Client a where
-  executeCommand :: a -> Config -> Logger.Handle -> ClientSettings -> Target -> Command -> IO ClientSettings  
+  executeCommand :: a -> Config -> Logger.Handle -> ClientSettings -> Target -> Command -> IO ClientSettings
 
 instance Client Messenger where
   executeCommand :: Messenger -> Config -> Logger.Handle -> ClientSettings -> Target -> Command -> IO ClientSettings
@@ -72,7 +71,7 @@ instance Client Messenger where
     return settings
   executeCommand Telegram config logger settings target (Action t) = do
     let token = cToken config
-    let times = cDefaultRepeatNumber config    
+    let times = cDefaultRepeatNumber config
     replicateM_ times (Telegram.sendText token logger target t) -- TODO: log failed messages here
     return settings
 
@@ -84,7 +83,7 @@ botLoop config logger settings offset = do
   let timeout = Just $ Timeout 100
   let token = cToken config
   Logger.debug logger ("Waiting " ++ show (fromJust timeout) ++ " seconds")
-  response <- Network.run logger $ request token $ TG.GetUpdates offset timeout
+  response <- Telegram.getUpdates token logger offset timeout
   case response of
     Left e -> do
       Logger.error logger e
@@ -98,7 +97,7 @@ botLoop config logger settings offset = do
           Logger.debug logger ("No updates or disconnected." :: String)
           botLoop config logger settings offset
         Just (newOffset, newSettings) -> do
-          Logger.info logger newOffset
+          Logger.debug logger ("New offset is: " ++ show (succ newOffset) :: String)
           botLoop config logger newSettings (Just $ succ newOffset)
 
 processUpdates :: Config -> Logger.Handle -> ClientSettings -> [TG.Update] -> IO (Maybe (Offset, ClientSettings))
