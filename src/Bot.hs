@@ -38,8 +38,6 @@ main = do
 
 data Config = Config {cToken :: Token, cGreetings :: T.Text, cDefaultRepeatNumber :: Int, cMessenger :: Messenger} deriving (Show)
 
-data Handle = Handle {hConfig :: Config, hLogger :: Logger.Handle} deriving (Show)
-
 type ClientSettings = Map.Map Target Int -- TODO: rename this
 
 data Messenger = VK | Telegram | Test deriving (Show)
