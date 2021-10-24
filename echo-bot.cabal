@@ -1,10 +1,10 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.33.0.
+-- This file has been generated from package.yaml by hpack version 0.34.4.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 76b44646306fbfb7dc953ccb2e5f7e32d87e42cd0fe01611b1eeb51788ff2705
+-- hash: bae0271661616d8ab47f09501ed3d0f08da7e103c4f2f7b5c8973ee0f65dfdc8
 
 name:           echo-bot
 version:        0.1.0.0
@@ -39,7 +39,8 @@ library
       Paths_echo_bot
   hs-source-dirs:
       src
-  default-extensions: OverloadedStrings, RecordWildCards, TupleSections, MultiParamTypeClasses, InstanceSigs
+  default-extensions:
+      OverloadedStrings, RecordWildCards, TupleSections, MultiParamTypeClasses, InstanceSigs
   build-depends:
       aeson
     , base >=4.7 && <5
@@ -55,7 +56,8 @@ executable echo-bot-exe
       Paths_echo_bot
   hs-source-dirs:
       app
-  default-extensions: OverloadedStrings, RecordWildCards, TupleSections, MultiParamTypeClasses, InstanceSigs
+  default-extensions:
+      OverloadedStrings, RecordWildCards, TupleSections, MultiParamTypeClasses, InstanceSigs
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       aeson
@@ -75,7 +77,8 @@ test-suite echo-bot-test
       Paths_echo_bot
   hs-source-dirs:
       test
-  default-extensions: OverloadedStrings, RecordWildCards, TupleSections, MultiParamTypeClasses, InstanceSigs
+  default-extensions:
+      OverloadedStrings, RecordWildCards, TupleSections, MultiParamTypeClasses, InstanceSigs
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       aeson

@@ -42,6 +42,8 @@ type ClientSettings = Map.Map Target Int -- TODO: rename this
 
 data Messenger = VK | Telegram | Test deriving (Show)
 
+data SocialNetwork = SocialNetwork Config Messenger Logger.Handle
+
 class Client a where
   executeCommand :: a -> Config -> Logger.Handle -> ClientSettings -> Target -> Command -> IO ClientSettings
 
@@ -71,15 +73,14 @@ instance Client Messenger where
     return settings
 
 runLoop :: Config -> Logger.Handle -> Maybe Offset -> IO ()
-runLoop config logger = botLoop config logger Map.empty
+runLoop config logger = undefined
 
 botLoop ::
-  Config ->
-  Logger.Handle ->
+  SocialNetwork ->
   ClientSettings ->
   Maybe Offset ->
   IO ()
-botLoop config logger settings offset = do
+botLoop (SocialNetwork config messenger logger) settings offset = do
   let timeout = Just $ Timeout 100
   let token = cToken config
   Logger.debug logger ("Waiting " ++ show (fromJust timeout) ++ " seconds")
@@ -87,7 +88,7 @@ botLoop config logger settings offset = do
   case response of
     Left e -> do
       Logger.error logger e
-      botLoop config logger settings offset
+      botLoop (SocialNetwork config messenger logger) settings offset
     Right updates -> do
       Logger.debug logger ("Received " ++ show (length updates) ++ " updates")
       Logger.debug logger updates
@@ -95,10 +96,10 @@ botLoop config logger settings offset = do
       case result of
         Nothing -> do
           Logger.debug logger ("No updates or disconnected." :: String)
-          botLoop config logger settings offset
+          botLoop (SocialNetwork config messenger logger) settings offset
         Just (newOffset, newSettings) -> do
           Logger.debug logger ("New offset is: " ++ show (succ newOffset) :: String)
-          botLoop config logger newSettings (Just $ succ newOffset)
+          botLoop (SocialNetwork config messenger logger) newSettings (Just $ succ newOffset)
 
 processUpdates :: Config -> Logger.Handle -> ClientSettings -> [TG.Update] -> IO (Maybe (Offset, ClientSettings))
 processUpdates config logger settings updates = do
