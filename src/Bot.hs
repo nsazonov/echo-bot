@@ -25,7 +25,7 @@ main = do
       runLoop
         Config
           { cToken = Token $ BC.pack token,
-            cGreetings = "Hello, this is Echo bot.",
+            cGreetings = "Hello, this is Echo bot. Play with me.",
             cDefaultRepeatNumber = 3,
             cMessenger = Telegram
           }
