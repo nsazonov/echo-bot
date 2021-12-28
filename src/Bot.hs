@@ -29,14 +29,19 @@ main = do
             cDefaultRepeatNumber = 3,
             cMessenger = Telegram
           }
-        logger
-        Nothing
+        logger        
       where
     _ -> do
       putStrLn $ "Usage: " ++ progName ++ " <conf>"
       exitFailure
 
-data Config = Config {cToken :: Token, cGreetings :: T.Text, cDefaultRepeatNumber :: Int, cMessenger :: Messenger} deriving (Show)
+data Config = Config
+  { cToken :: Token,
+    cGreetings :: T.Text,
+    cDefaultRepeatNumber :: Int,
+    cMessenger :: Messenger
+  }
+  deriving (Show)
 
 type ClientSettings = Map.Map Target Int -- TODO: rename this
 
@@ -70,8 +75,8 @@ instance Client Messenger where
     replicateM_ times (Telegram.sendText token logger target t) -- TODO: log failed messages here
     return settings
 
-runLoop :: Config -> Logger.Handle -> Maybe Offset -> IO ()
-runLoop config logger = botLoop config logger Map.empty
+runLoop :: Config -> Logger.Handle -> IO ()
+runLoop config logger = botLoop config logger Map.empty Nothing
 
 botLoop ::
   Config ->
