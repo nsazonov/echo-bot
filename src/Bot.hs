@@ -13,15 +13,16 @@ import qualified Data.Text as T
 import qualified Logger
 import qualified REST.Client.Telegram as Telegram
 import REST.Types
-import System.Environment
 import System.Exit (exitFailure)
 
-main :: IO ()
-main = do
-  args <- getArgs
-  progName <- getProgName
+type ProgramName = String
+type ProgramArgs = [String]
+
+main :: ProgramName -> ProgramArgs -> IO ()
+main progName args = do
+  let loggerConfig = Logger.Config Logger.Debug
   case args of
-    [token] -> Logger.withHandle (Logger.Config Logger.Debug) $ \logger ->
+    [token] -> Logger.withHandle loggerConfig $ \logger ->
       runLoop
         BotConfig
           { cToken = Token $ BC.pack token,
