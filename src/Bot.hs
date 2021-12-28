@@ -23,19 +23,19 @@ main = do
   case args of
     [token] -> Logger.withHandle (Logger.Config Logger.Debug) $ \logger ->
       runLoop
-        Config
+        BotConfig
           { cToken = Token $ BC.pack token,
             cGreetings = "Hello, this is Echo bot. Play with me.",
             cDefaultRepeatNumber = 3,
             cMessenger = Telegram
           }
-        logger        
+        logger
       where
     _ -> do
       putStrLn $ "Usage: " ++ progName ++ " <conf>"
       exitFailure
 
-data Config = Config
+data BotConfig = BotConfig
   { cToken :: Token,
     cGreetings :: T.Text,
     cDefaultRepeatNumber :: Int,
@@ -48,10 +48,10 @@ type ClientSettings = Map.Map Target Int -- TODO: rename this
 data Messenger = VK | Telegram | Test deriving (Show)
 
 class Client a where
-  executeCommand :: a -> Config -> Logger.Handle -> ClientSettings -> Target -> Command -> IO ClientSettings
+  executeCommand :: a -> BotConfig -> Logger.Handle -> ClientSettings -> Target -> Command -> IO ClientSettings
 
 instance Client Messenger where
-  executeCommand :: Messenger -> Config -> Logger.Handle -> ClientSettings -> Target -> Command -> IO ClientSettings
+  executeCommand :: Messenger -> BotConfig -> Logger.Handle -> ClientSettings -> Target -> Command -> IO ClientSettings
   executeCommand VK _ _ _ _ _ = undefined
   executeCommand Test _ _ _ _ _ = undefined
   executeCommand Telegram config logger settings _ (RepeatAnswer queryId repeatNumber) = do
@@ -75,11 +75,11 @@ instance Client Messenger where
     replicateM_ times (Telegram.sendText token logger target t) -- TODO: log failed messages here
     return settings
 
-runLoop :: Config -> Logger.Handle -> IO ()
+runLoop :: BotConfig -> Logger.Handle -> IO ()
 runLoop config logger = botLoop config logger Map.empty Nothing
 
 botLoop ::
-  Config ->
+  BotConfig ->
   Logger.Handle ->
   ClientSettings ->
   Maybe Offset ->
@@ -105,7 +105,7 @@ botLoop config logger settings offset = do
           Logger.debug logger ("New offset is: " ++ show (succ newOffset) :: String)
           botLoop config logger newSettings (Just $ succ newOffset)
 
-processUpdates :: Config -> Logger.Handle -> ClientSettings -> [TG.Update] -> IO (Maybe (Offset, ClientSettings))
+processUpdates :: BotConfig -> Logger.Handle -> ClientSettings -> [TG.Update] -> IO (Maybe (Offset, ClientSettings))
 processUpdates config logger settings updates = do
   let callBacks = mapMaybe fromCallbackQuery updates
   let others = mapMaybe fromMessage updates
