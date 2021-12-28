@@ -16,7 +16,15 @@ sendText token logger target text = do
 
 sendRepeatInput :: Token -> Logger.Handle -> Target -> T.Text -> IO (Either NetworkError ())
 sendRepeatInput token logger target statusMessage = do
-  let kb = TG.InlineKeyboardMarkup [[TG.InlineKeyboardButton {ikbText = "1", ikbCallBackData = "1"}, TG.InlineKeyboardButton {ikbText = "2", ikbCallBackData = "2"}, TG.InlineKeyboardButton {ikbText = "3", ikbCallBackData = "3"}]]
+  let kb =
+        TG.InlineKeyboardMarkup
+          [ [ TG.InlineKeyboardButton {ikbText = "1", ikbCallBackData = "1"},
+              TG.InlineKeyboardButton {ikbText = "2", ikbCallBackData = "2"},
+              TG.InlineKeyboardButton {ikbText = "3", ikbCallBackData = "3"},
+              TG.InlineKeyboardButton {ikbText = "4", ikbCallBackData = "4"},
+              TG.InlineKeyboardButton {ikbText = "5", ikbCallBackData = "5"}
+            ]
+          ]
   let message = TG.OutgoingMessage {omChatId = unTarget target, omText = statusMessage, omReplyMarkup = Just kb}
   result <- Network.run logger $ request token $ TG.SendMessage message :: IO (Either Network.NetworkError TG.Message)
   case result of
