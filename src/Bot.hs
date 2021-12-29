@@ -107,12 +107,18 @@ botLoop config logger settings offset = do
           Logger.debug logger ("New offset is: " ++ show (succ newOffset) :: String)
           botLoop config logger newSettings (Just $ succ newOffset)
 
-processUpdates :: BotConfig -> Logger.Handle -> ClientSettings -> [TG.Update] -> IO (Maybe (Offset, ClientSettings))
+processUpdates ::
+  BotConfig ->
+  Logger.Handle ->
+  ClientSettings ->
+  [TG.Update] ->
+  IO (Maybe (Offset, ClientSettings))
 processUpdates config logger settings updates = do
   let callBacks = mapMaybe fromCallbackQuery updates
   let others = mapMaybe fromMessage updates
   Logger.debug logger (("Number of callbacks: " ++ show (length callBacks)) :: String)
   Logger.debug logger (("Number of other commands: " ++ show (length others)) :: String)
-  mapM_ (uncurry (executeCommand config logger settings)) $ callBacks ++ others
+  commandResults <- mapM (uncurry (executeCommand config logger settings)) $ callBacks ++ others
+  let newSettings = mconcat commandResults
   Logger.debug logger ("Finished processing the updates" :: String)
-  return $ (,Map.empty) <$> TG.nextOffset updates
+  return $ (,newSettings) <$> TG.nextOffset updates
