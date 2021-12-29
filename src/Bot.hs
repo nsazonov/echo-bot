@@ -16,6 +16,7 @@ import REST.Types
 import System.Exit (exitFailure)
 
 type ProgramName = String
+
 type ProgramArgs = [String]
 
 main :: ProgramName -> ProgramArgs -> IO ()
@@ -31,7 +32,6 @@ main progName args = do
             cMessenger = Telegram
           }
         logger
-      where
     _ -> do
       putStrLn $ "Usage: " ++ progName ++ " <conf>"
       exitFailure
@@ -55,13 +55,14 @@ instance Client Messenger where
   executeCommand :: Messenger -> BotConfig -> Logger.Handle -> ClientSettings -> Target -> Command -> IO ClientSettings
   executeCommand VK _ _ _ _ _ = undefined
   executeCommand Test _ _ _ _ _ = undefined
-  executeCommand Telegram config logger settings _ (RepeatAnswer queryId repeatNumber) = do
+  executeCommand Telegram config logger settings target (RepeatAnswer queryId repeatNumber) = do
     let token = cToken config
+    let newSetting = Map.insert target repeatNumber settings
     _ <- Telegram.sendAnswer token logger queryId repeatNumber -- TODO: log errors
-    return settings
+    return newSetting
   executeCommand Telegram config logger settings target Repeat = do
     let token = cToken config
-    let repeatNumber = cDefaultRepeatNumber config
+    let repeatNumber = Map.findWithDefault (cDefaultRepeatNumber config) target settings 
     let statusMessage = "Current repeat number is " ++ show repeatNumber
     _ <- Telegram.sendRepeatInput token logger target $ T.pack statusMessage -- TODO: log errors
     return settings

@@ -11,7 +11,7 @@ newtype Host = Host {unHost :: BC.ByteString}
 
 newtype Timeout = Timeout {unTimeout :: Integer}
 
-newtype Target = Target {unTarget :: Int} deriving (Show)
+newtype Target = Target {unTarget :: Int} deriving (Show, Ord, Eq)
 
 newtype Offset = Offset {unOffset :: Int} deriving (Enum)
 
