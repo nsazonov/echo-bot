@@ -1,0 +1,45 @@
+{
+  "ok": true,
+  "result": [
+    {
+      "update_id": 937106915,
+      "message": {
+        "message_id": 314,
+        "from": {
+          "id": 55751070,
+          "is_bot": false,
+          "first_name": "Nikolay",
+          "last_name": "Sazonov",
+          "language_code": "en"
+        },
+        "chat": {
+          "id": 55751070,
+          "first_name": "Nikolay",
+          "last_name": "Sazonov",
+          "type": "private"
+        },
+        "date": 1640814079,
+        "text": "123",
+        "poll": {
+          "id": "5073626827902156803",
+          "question": "\u0412\u043e\u043f\u0440\u043e\u0441",
+          "options": [
+            {
+              "text": "\u0414\u0430",
+              "voter_count": 0
+            },
+            {
+              "text": "\u041d\u0435\u0442",
+              "voter_count": 0
+            }
+          ],
+          "total_voter_count": 0,
+          "is_closed": false,
+          "is_anonymous": true,
+          "type": "regular",
+          "allows_multiple_answers": false
+        }
+      }
+    }
+  ]
+}

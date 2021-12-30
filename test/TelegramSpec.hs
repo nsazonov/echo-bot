@@ -10,7 +10,10 @@ main :: IO ()
 main = hspec spec
 
 telegramMessage :: FilePath
-telegramMessage = "test/data/telegramMessage.json"
+telegramMessage = "test/data/telegramTextMessage.json"
+
+telegramPollMessage :: FilePath
+telegramPollMessage = "test/data/telegramPollMessage.json"
 
 telegramCallback :: FilePath
 telegramCallback = "test/data/telegramCallback.json"
@@ -23,6 +26,10 @@ getUpdates file f = withJsonFile file (f . fromJust . decode)
 
 spec :: Spec
 spec = do
+  around (getUpdates telegramPollMessage) $ do
+    describe "parse updates for new poll message" $ do
+      it "shoud be successful" $ \resp -> do
+        TG.guOk resp `shouldBe` True
   around (getUpdates telegramCallback) $ do
     describe "parse updates for inline keyboard callback" $ do
       it "shoud be successful" $ \resp -> do

@@ -5,6 +5,7 @@ module API.Telegram
     SendMessageResponse (..),
     Update (..),
     Message (..),
+    Poll (..),
     Chat (..),
     OutgoingMessage (..),
     InlineKeyboardMarkup (..),
@@ -45,7 +46,10 @@ nextOffset updates = case latest updates of
   Nothing -> Nothing
   Just update -> Just $ Offset $ uId update
 
-data TelegramEndpoint = GetUpdates (Maybe Offset) (Maybe Timeout) | SendMessage OutgoingMessage | AnswerCallbackQuery CallbackAnswer
+data TelegramEndpoint
+  = GetUpdates (Maybe Offset) (Maybe Timeout)
+  | SendMessage OutgoingMessage
+  | AnswerCallbackQuery CallbackAnswer
 
 instance EndpointBuilder TelegramEndpoint where
   request token (GetUpdates offset timeout) =
@@ -59,30 +63,79 @@ instance EndpointBuilder TelegramEndpoint where
                   ]
               )
               timeout
-          ) -- TODO: this is very ugly, consider creating ad-hoc type with moniid properties and toQueryString func
+          ) -- TODO: this is very ugly, consider creating ad-hoc type with monoid properties and toQueryString func
           r
   request token (SendMessage m) = setRequestBodyJSON m $ buildRequest token POST telegramHost $ BC.pack $ show APISendMessage
   request token (AnswerCallbackQuery a) = setRequestBodyJSON a $ buildRequest token POST telegramHost $ BC.pack $ show APIAnswerCallbackQuery
 
-data GetUpdatesResponse = GetUpdatesResponse {guOk :: Bool, guResult :: [Update]} deriving (Show)
+data GetUpdatesResponse = GetUpdatesResponse
+  { guOk :: Bool,
+    guResult :: [Update]
+  }
+  deriving (Show)
 
-data SendMessageResponse = SendMessageResponse {smOk :: Bool, smResult :: Message} deriving (Show)
+data SendMessageResponse = SendMessageResponse
+  { smOk :: Bool,
+    smResult :: Message
+  }
+  deriving (Show)
 
-data Update = Update {uId :: Int, uMessage :: Maybe Message, uCallbackQuery :: Maybe CallbackQuery} deriving (Show)
+data Update = Update
+  { uId :: Int,
+    uMessage :: Maybe Message,
+    uCallbackQuery :: Maybe CallbackQuery
+  }
+  deriving (Show)
 
-data Message = Message {mId :: Int, mText :: Maybe T.Text, mChat :: Chat} deriving (Show)
+data Poll = Poll
+  { pId :: T.Text,
+    pQuestion :: Maybe T.Text
+  }
+  deriving (Show)
 
-newtype Chat = Chat {cId :: Int} deriving (Show)
+data Message = Message
+  { mId :: Int,
+    mText :: Maybe T.Text,
+    mPoll :: Maybe Poll,
+    mChat :: Chat
+  }
+  deriving (Show)
 
-data OutgoingMessage = OutgoingMessage {omChatId :: Int, omText :: T.Text, omReplyMarkup :: Maybe InlineKeyboardMarkup} deriving (Show)
+newtype Chat = Chat
+  { cId :: Int
+  }
+  deriving (Show)
 
-data CallbackAnswer = CallbackAnswer {caQueryId :: T.Text, caText :: T.Text} deriving (Show)
+data OutgoingMessage = OutgoingMessage
+  { omChatId :: Int,
+    omText :: T.Text,
+    omReplyMarkup :: Maybe InlineKeyboardMarkup
+  }
+  deriving (Show)
 
-data CallbackQuery = CallbackQuery {cqId :: T.Text, cqData :: T.Text, cqMessage :: Maybe Message} deriving (Show)
+data CallbackAnswer = CallbackAnswer
+  { caQueryId :: T.Text,
+    caText :: T.Text
+  }
+  deriving (Show)
 
-newtype InlineKeyboardMarkup = InlineKeyboardMarkup {ikmKeyboard :: [[InlineKeyboardButton]]} deriving (Show)
+data CallbackQuery = CallbackQuery
+  { cqId :: T.Text,
+    cqData :: T.Text,
+    cqMessage :: Maybe Message
+  }
+  deriving (Show)
 
-data InlineKeyboardButton = InlineKeyboardButton {ikbText :: T.Text, ikbCallBackData :: T.Text} deriving (Show)
+newtype InlineKeyboardMarkup = InlineKeyboardMarkup
+  { ikmKeyboard :: [[InlineKeyboardButton]]
+  }
+  deriving (Show)
+
+data InlineKeyboardButton = InlineKeyboardButton
+  { ikbText :: T.Text,
+    ikbCallBackData :: T.Text
+  }
+  deriving (Show)
 
 instance Eq Update where
   (==) a b = uId a == uId b
@@ -116,10 +169,17 @@ instance A.FromJSON Chat where
     cId <- o A..: "id"
     return Chat {..}
 
+instance A.FromJSON Poll where
+  parseJSON = A.withObject "FromJSON API.Telegram.Poll" $ \o -> do
+    pId <- o A..: "id"
+    pQuestion <- o A..: "question"
+    return Poll {..}
+
 instance A.FromJSON Message where
   parseJSON = A.withObject "FromJSON API.Telegram.Message" $ \o -> do
     mId <- o A..: "message_id"
-    mText <- o A..: "text"
+    mText <- o A..:? "text"
+    mPoll <- o A..:? "poll"
     mChat <- o A..: "chat"
     return Message {..}
 
