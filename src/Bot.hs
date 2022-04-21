@@ -29,7 +29,7 @@ main progName args = do
           { cToken = Token $ BC.pack token,
             cGreetings = "Hello, this is Echo bot. Play with me.",
             cDefaultRepeatNumber = 3,
-            cMessenger = Telegram
+            cFrontEnd = Telegram
           }
         logger
     _ -> do
@@ -40,13 +40,13 @@ data BotConfig = BotConfig
   { cToken :: Token,
     cGreetings :: T.Text,
     cDefaultRepeatNumber :: Int,
-    cMessenger :: Messenger
+    cFrontEnd :: FrontEnd
   }
   deriving (Show)
 
 type ClientSettings = Map.Map Target Int -- TODO: rename this
 
-data Messenger = VK | Telegram | Test deriving (Show)
+data FrontEnd = Telegram | Test deriving (Show)
 
 executeCommand ::
   BotConfig ->
