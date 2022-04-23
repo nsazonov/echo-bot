@@ -15,7 +15,7 @@ import REST.Types
 
 data NetworkError = PollTimeout | HttpError HttpException | ResponseError JSONException deriving (Show)
 
-run :: (A.FromJSON a) => Logger.Handle -> Request -> IO (Either NetworkError a)
+run :: (A.FromJSON a) => Logger.Handle IO -> Request -> IO (Either NetworkError a)
 run _ r = do
   res <- try $ httpJSONEither r :: (A.FromJSON a) => IO (Either HttpException (Response (Either JSONException a)))
   case res of

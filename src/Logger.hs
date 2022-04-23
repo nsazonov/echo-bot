@@ -1,39 +1,47 @@
+-- | The logger interface module. It should not define a specific
+-- implementation.
 module Logger
-  ( Level (..),
-    Config (..),
-    Handle,
-    withHandle,
-    log,
+  ( Handle (..),
+    Level (..),
     debug,
     info,
     warning,
     error,
+    (.<),
   )
 where
 
 import Prelude hiding
   ( error,
-    log,
   )
 
-data Level = Debug | Info | Warning | Error deriving (Eq, Ord, Show)
+import qualified Data.Text as T
 
-newtype Config = Config {cLevel :: Level} deriving (Show)
+-- | The logger handle. This is a public logger interface that can
+-- have different implementations. You can use it everywhere.
+newtype Handle m = Handle
+  { hLowLevelLog :: Level -> T.Text -> m ()
+  }
 
-newtype Handle = Handle {hConfig :: Config} deriving (Show)
+data Level
+  = Debug
+  | Info
+  | Warning
+  | Error
+  deriving (Show, Eq, Ord)
 
-withHandle :: Config -> (Handle -> IO a) -> IO a
-withHandle c f = f Handle {hConfig = c}
+debug, info, warning, error :: Handle m -> T.Text -> m ()
+debug h = hLowLevelLog h Debug
+info h = hLowLevelLog h Info
+warning h = hLowLevelLog h Warning
+error h = hLowLevelLog h Error
 
-log :: Show s => Handle -> Level -> s -> IO ()
-log Handle {..} v x
-  | v >= verbosity = putStrLn $ "[" ++ show v ++ "]:" ++ show x
-  | otherwise = return ()
-  where
-    verbosity = Debug
+-- | Concatenates a text and an instance of 'Show'. This is a
+-- convenience function to make logger function applications more
+-- concise:
+--
+-- > Log.logError (hLogger h) "The error code is " .< e
+(.<) :: (Show a) => T.Text -> a -> T.Text
+text .< a = text <> T.pack (show a)
 
-debug, info, warning, error :: Show s => Handle -> s -> IO ()
-debug h = log h Debug
-info h = log h Info
-warning h = log h Warning
-error h = log h Error
+infixr 7 .<

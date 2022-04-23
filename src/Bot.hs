@@ -10,10 +10,13 @@ import qualified Data.ByteString.Char8 as BC
 import qualified Data.Map as Map
 import Data.Maybe
 import qualified Data.Text as T
+import Logger ((.<))
 import qualified Logger
+import qualified Logger.Impl
 import qualified REST.Client.Telegram as Telegram
 import REST.Types
 import System.Exit (exitFailure)
+import System.IO
 
 type ProgramName = String
 
@@ -21,9 +24,9 @@ type ProgramArgs = [String]
 
 main :: ProgramName -> ProgramArgs -> IO ()
 main progName args = do
-  let loggerConfig = Logger.Config Logger.Debug
+  let loggerConfig = Logger.Impl.Config { confFileHandle = System.IO.stderr, confMinLevel=Logger.Debug }
   case args of
-    [token] -> Logger.withHandle loggerConfig $ \logger ->
+    [token] -> Logger.Impl.withHandle loggerConfig $ \logger ->
       runLoop
         BotConfig
           { cToken = Token $ BC.pack token,
@@ -50,7 +53,7 @@ data FrontEnd = Telegram | Test deriving (Show)
 
 executeCommand ::
   BotConfig ->
-  Logger.Handle ->
+  Logger.Handle IO ->
   ClientSettings ->
   Target ->
   Command ->
@@ -77,48 +80,48 @@ executeCommand config logger settings target (Action t) = do
   replicateM_ times (Telegram.sendText token logger target t) -- TODO: log failed messages here
   return settings
 
-runLoop :: BotConfig -> Logger.Handle -> IO ()
+runLoop :: BotConfig -> Logger.Handle IO -> IO ()
 runLoop config logger = botLoop config logger Map.empty Nothing
 
 botLoop ::
   BotConfig ->
-  Logger.Handle ->
+  Logger.Handle IO ->
   ClientSettings ->
   Maybe Offset ->
   IO ()
 botLoop config logger settings offset = do
   let timeout = Just $ Timeout 100
   let token = cToken config
-  Logger.debug logger ("Waiting " ++ show (fromJust timeout) ++ " seconds")
+  Logger.debug logger $ "Waiting " .< fromJust timeout <> " seconds."
   response <- Telegram.getUpdates token logger offset timeout
   case response of
     Left e -> do
-      Logger.error logger e
+      Logger.error logger $ "" .< e
       botLoop config logger settings offset
     Right updates -> do
-      Logger.debug logger ("Received " ++ show (length updates) ++ " updates")
-      Logger.debug logger updates
+      Logger.debug logger $ "Received " .< length updates <> " updates."
+      Logger.debug logger $ "" .< updates
       result <- processUpdates config logger settings updates
       case result of
         Nothing -> do
-          Logger.debug logger ("No updates or disconnected." :: String)
+          Logger.debug logger "No updates or disconnected."
           botLoop config logger settings offset
         Just (newOffset, newSettings) -> do
-          Logger.debug logger ("New offset is: " ++ show (succ newOffset) :: String)
+          Logger.debug logger $ "New offset is: " .< succ newOffset
           botLoop config logger newSettings (Just $ succ newOffset)
 
 processUpdates ::
   BotConfig ->
-  Logger.Handle ->
+  Logger.Handle IO ->
   ClientSettings ->
   [TG.Update] ->
   IO (Maybe (Offset, ClientSettings))
 processUpdates config logger settings updates = do
   let callBacks = mapMaybe fromCallbackQuery updates
   let others = mapMaybe fromMessage updates
-  Logger.debug logger (("Number of callbacks: " ++ show (length callBacks)) :: String)
-  Logger.debug logger (("Number of other commands: " ++ show (length others)) :: String)
+  Logger.debug logger $ "Number of callbacks: " .< length callBacks
+  Logger.debug logger $ "Number of other commands: " .< length others
   commandResults <- mapM (uncurry (executeCommand config logger settings)) $ callBacks ++ others
   let newSettings = mconcat commandResults
-  Logger.debug logger ("Finished processing the updates" :: String)
+  Logger.debug logger "Finished processing the updates"
   return $ (,newSettings) <$> TG.nextOffset updates
