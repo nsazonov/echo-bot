@@ -63,21 +63,21 @@ executeCommand config logger settings target (RepeatAnswer queryId repeatNumber)
   let newSetting = Map.insert target repeatNumber settings
   _ <- Telegram.sendAnswer token logger queryId repeatNumber -- TODO: log errors
   return newSetting
-executeCommand config logger settings target Repeat = do
+executeCommand config _ settings target Repeat = do
   let token = cToken config
   let repeatNumber = Map.findWithDefault (cDefaultRepeatNumber config) target settings
   let statusMessage = "Current repeat number is " ++ show repeatNumber
-  _ <- Telegram.sendRepeatInput token logger target $ T.pack statusMessage -- TODO: log errors
+  _ <- Telegram.sendRepeatInput token target $ T.pack statusMessage -- TODO: log errors
   return settings
-executeCommand config logger settings target Help = do
+executeCommand config _ settings target Help = do
   let token = cToken config
   let greetingsMessage = cGreetings config
-  _ <- Telegram.sendText token logger target greetingsMessage -- TODO: log errors
+  _ <- Telegram.sendText token target greetingsMessage -- TODO: log errors
   return settings
-executeCommand config logger settings target (Action t) = do
+executeCommand config _ settings target (Action t) = do
   let token = cToken config
   let times = cDefaultRepeatNumber config
-  replicateM_ times (Telegram.sendText token logger target t) -- TODO: log failed messages here
+  replicateM_ times (Telegram.sendText token target t) -- TODO: log failed messages here
   return settings
 
 runLoop :: BotConfig -> Logger.Handle IO -> IO ()
@@ -93,7 +93,7 @@ botLoop config logger settings offset = do
   let timeout = Just $ Timeout 100
   let token = cToken config
   Logger.debug logger $ "Waiting " .< fromJust timeout <> " seconds."
-  response <- Telegram.getUpdates token logger offset timeout
+  response <- Telegram.getUpdates token offset timeout
   case response of
     Left e -> do
       Logger.error logger $ "" .< e

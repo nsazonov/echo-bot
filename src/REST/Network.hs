@@ -8,15 +8,14 @@ where
 
 import Control.Exception
 import qualified Data.Aeson as A
-import qualified Logger
 import Network.HTTP.Simple
 import Network.HTTP.Simple.Extended
 import REST.Types
 
 data NetworkError = PollTimeout | HttpError HttpException | ResponseError JSONException deriving (Show)
 
-run :: (A.FromJSON a) => Logger.Handle IO -> Request -> IO (Either NetworkError a)
-run _ r = do
+run :: (A.FromJSON a) => Request -> IO (Either NetworkError a)
+run r = do
   res <- try $ httpJSONEither r :: (A.FromJSON a) => IO (Either HttpException (Response (Either JSONException a)))
   case res of
     Left e -> if isTimeout e then return $ Left PollTimeout else return $ Left (HttpError e)
