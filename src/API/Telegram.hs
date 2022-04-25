@@ -115,7 +115,8 @@ data OutgoingMessage = OutgoingMessage
 
 data CallbackAnswer = CallbackAnswer
   { caQueryId :: T.Text,
-    caText :: T.Text
+    caText :: T.Text,
+    caShowAlert :: Bool
   }
   deriving (Show)
 
@@ -145,7 +146,7 @@ instance Ord Update where
 
 instance A.ToJSON CallbackAnswer where
   toJSON p =
-    A.object ["callback_query_id" A..= caQueryId p, "text" A..= caText p]
+    A.object ["callback_query_id" A..= caQueryId p, "text" A..= caText p, "show_alert" A..= caShowAlert p]
 
 instance A.ToJSON OutgoingMessage where
   toJSON p =
@@ -228,6 +229,7 @@ instance A.FromJSON CallbackAnswer where
   parseJSON = A.withObject "FromJSON API.Telegram.CallbackAnswer" $ \o -> do
     caQueryId <- o A..: "callback_query_id"
     caText <- o A..: "text"
+    caShowAlert <- o A..: "show_alert"
     return CallbackAnswer {..}
 
 instance A.FromJSON CallbackQuery where

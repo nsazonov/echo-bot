@@ -61,6 +61,8 @@ executeCommand ::
 executeCommand config logger settings target (RepeatAnswer queryId repeatNumber) = do
   let token = cToken config
   let newSetting = Map.insert target repeatNumber settings
+--  let text = T.pack $ "Repeat number is set to " <> show repeatNumber
+--  _ <- Telegram.sendText token target text
   _ <- Telegram.sendAnswer token logger queryId repeatNumber -- TODO: log errors
   return newSetting
 executeCommand config _ settings target Repeat = do
@@ -74,10 +76,11 @@ executeCommand config _ settings target Help = do
   let greetingsMessage = cGreetings config
   _ <- Telegram.sendText token target greetingsMessage -- TODO: log errors
   return settings
-executeCommand config _ settings target (Action t) = do
+executeCommand config logger settings target (Action t) = do
   let token = cToken config
-  let times = cDefaultRepeatNumber config
-  replicateM_ times (Telegram.sendText token target t) -- TODO: log failed messages here
+  let repeatNumber = fromMaybe (cDefaultRepeatNumber config) (Map.lookup target settings)
+  Logger.debug logger $ "The bot is replying " .< repeatNumber <> " times"
+  replicateM_ repeatNumber (Telegram.sendText token target t) -- TODO: log failed messages here
   return settings
 
 runLoop :: BotConfig -> Logger.Handle IO -> IO ()
