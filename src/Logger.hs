@@ -11,11 +11,10 @@ module Logger
   )
 where
 
+import qualified Data.Text as T
 import Prelude hiding
   ( error,
   )
-
-import qualified Data.Text as T
 
 -- | The logger handle. This is a public logger interface that can
 -- have different implementations. You can use it everywhere.

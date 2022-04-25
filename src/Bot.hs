@@ -24,7 +24,7 @@ type ProgramArgs = [String]
 
 main :: ProgramName -> ProgramArgs -> IO ()
 main progName args = do
-  let loggerConfig = Logger.Impl.Config { confFileHandle = System.IO.stderr, confMinLevel=Logger.Debug }
+  let loggerConfig = Logger.Impl.Config {confFileHandle = System.IO.stderr, confMinLevel = Logger.Debug}
   case args of
     [token] -> Logger.Impl.withHandle loggerConfig $ \logger ->
       runLoop
@@ -61,8 +61,6 @@ executeCommand ::
 executeCommand config logger settings target (RepeatAnswer queryId repeatNumber) = do
   let token = cToken config
   let newSetting = Map.insert target repeatNumber settings
---  let text = T.pack $ "Repeat number is set to " <> show repeatNumber
---  _ <- Telegram.sendText token target text
   _ <- Telegram.sendAnswer token logger queryId repeatNumber -- TODO: log errors
   return newSetting
 executeCommand config _ settings target Repeat = do

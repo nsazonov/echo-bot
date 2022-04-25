@@ -2,8 +2,8 @@ module REST.Client.Telegram where
 
 import qualified API.Telegram as TG
 import qualified Data.Text as T
-import qualified Logger
 import Logger ((.<))
+import qualified Logger
 import REST.Network as Network
 import REST.Types
 
