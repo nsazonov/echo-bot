@@ -34,7 +34,12 @@ sendRepeatInput token target statusMessage = do
 
 sendAnswer :: Token -> Logger.Handle IO -> T.Text -> Int -> IO (Either NetworkError ())
 sendAnswer token logger queryId repeatNumber = do
-  let message = TG.CallbackAnswer {caQueryId = queryId, caText = T.pack $ "Repeat number is set to " ++ show repeatNumber, caShowAlert = True}
+  let message =
+        TG.CallbackAnswer
+          { caQueryId = queryId,
+            caText = T.pack $ "Repeat number is set to " ++ show repeatNumber,
+            caShowAlert = True
+          }
   Logger.debug logger $ "Will send callback answer" .< message
   result <- Network.run $ request token $ TG.AnswerCallbackQuery message :: IO (Either Network.NetworkError ()) -- TODO: log errors
   Logger.debug logger "Answer callback sent"

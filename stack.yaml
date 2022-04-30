@@ -3,4 +3,4 @@ ghc-options:
   $targets: -Werror
 packages:
 - .
-resolver: lts-19.5
+resolver: lts-18.28
