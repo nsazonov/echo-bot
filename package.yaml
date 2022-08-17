@@ -26,6 +26,14 @@ dependencies:
 - http-conduit
 - text
 - configurator
+- QuickCheck
+- mtl
+
+ghc-options:
+- -Wall
+- -Werror
+- -Wcompat
+- -Wincomplete-uni-patterns
 
 default-extensions: OverloadedStrings, RecordWildCards, TupleSections, MultiParamTypeClasses, InstanceSigs
 
